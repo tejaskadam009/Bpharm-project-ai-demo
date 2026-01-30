@@ -36,17 +36,27 @@ def hf_text_generate(prompt):
 
     url = f"https://api-inference.huggingface.co/models/{TEXT_MODEL}"
     headers = {"Authorization": f"Bearer {HF_TOKEN}"}
-    payload = {"inputs": prompt}
+    payload = {"inputs": prompt, "options": {"wait_for_model": True}}
 
     r = requests.post(url, headers=headers, json=payload, timeout=60)
 
-    if r.status_code != 200:
-        return f"Text model error: {r.status_code}"
+    # Show detailed errors
+    try:
+        data = r.json()
+    except:
+        return f"Text model error: {r.status_code} (non-JSON response)"
 
-    data = r.json()
+    if r.status_code != 200:
+        return f"Text model error: {r.status_code} | {data}"
+
     if isinstance(data, list) and len(data) > 0:
         return data[0].get("generated_text", "No response")
-    return "No response"
+
+    # Some models return dict format
+    if isinstance(data, dict) and "generated_text" in data:
+        return data["generated_text"]
+
+    return str(data)
 
 if st.button("Generate Guidance ✅"):
     prompt = f"""
