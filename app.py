@@ -7,7 +7,7 @@ st.title("🩺 AI Health Guidance (Demo)")
 st.caption("⚠️ For awareness only. Not a diagnosis tool.")
 
 HF_TOKEN = st.secrets.get("HF_TOKEN", "")
-TEXT_MODEL = "TEXT_MODEL = "distilbert/distilgpt2"
+TEXT_MODEL = "distilbert/distilgpt2"
 
 demo_cases = {
     "Case 1: Fever + Body pain": "I have fever, body pain, weakness since 2 days.",
