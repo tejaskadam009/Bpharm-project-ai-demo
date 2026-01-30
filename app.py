@@ -2,76 +2,93 @@ import streamlit as st
 import requests
 from PIL import Image
 
+# ----------------- PAGE SETUP -----------------
 st.set_page_config(page_title="AI Health Guidance Demo", page_icon="🩺")
-st.title("🩺 AI Health Guidance (Demo)")
-st.caption("⚠️ For awareness only. Not a diagnosis tool.")
+st.title("🩺 AI Health Guidance (B.Pharm Demo)")
+st.caption("⚠️ For awareness/education only. Not a medical diagnosis tool.")
 
+# ----------------- HUGGING FACE SETTINGS -----------------
 HF_TOKEN = st.secrets.get("HF_TOKEN", "")
-TEXT_MODEL = "distilbert/distilgpt2"
 
+# A good open instruct model (works well for demo)
+TEXT_MODEL = "mistralai/Mistral-7B-Instruct-v0.2"
+
+# ----------------- DEMO CASES -----------------
 demo_cases = {
     "Case 1: Fever + Body pain": "I have fever, body pain, weakness since 2 days.",
     "Case 2: Cough + Sore throat": "I have cough, sore throat and mild fever since 3 days.",
     "Case 3: Itching + Ring rash": "I have itching and circular red rash on my arm since 1 week.",
     "Case 4: Loose motion + Vomiting": "I have vomiting and loose motion since 1 day.",
-    "Case 5: Chest pain + Breathlessness": "I have chest pain and breathlessness suddenly."
+    "Case 5: Chest pain + Breathlessness (Emergency)": "I have chest pain and breathlessness suddenly."
 }
 
-st.subheader("✅ Select Demo Case")
+st.subheader("✅ Select a Demo Case")
 selected_case = st.selectbox("Choose a case", list(demo_cases.keys()))
 symptoms_text = demo_cases[selected_case]
-
 st.info(symptoms_text)
 
+# ----------------- IMAGE UPLOAD (OPTIONAL) -----------------
 st.subheader("📷 Upload Image (Optional)")
-uploaded_file = st.file_uploader("Upload rash/wound image", type=["jpg", "jpeg", "png"])
+uploaded_file = st.file_uploader("Upload a rash / wound / skin image", type=["jpg", "jpeg", "png"])
 
 if uploaded_file:
     img = Image.open(uploaded_file)
     st.image(img, caption="Uploaded Image", use_container_width=True)
 
-def hf_text_generate(prompt):
+# ----------------- FUNCTION: CALL HF ROUTER CHAT API -----------------
+def hf_chat_generate(prompt: str) -> str:
     if not HF_TOKEN:
-        return "HF token missing in Streamlit secrets."
+        return "❌ HF_TOKEN missing. Add it in Streamlit → Manage App → Secrets."
 
-    url = f"https://router.huggingface.co/models/{TEXT_MODEL}"
-    headers = {"Authorization": f"Bearer {HF_TOKEN}"}
-    payload = {"inputs": prompt, "options": {"wait_for_model": True}}
+    url = f"https://router.huggingface.co/hf-inference/models/{TEXT_MODEL}/v1/chat/completions"
+
+    headers = {
+        "Authorization": f"Bearer {HF_TOKEN}",
+        "Content-Type": "application/json",
+    }
+
+    system_msg = (
+        "You are an AI Health Guidance assistant made for a pharmacy college demo project. "
+        "Do NOT give a confirmed diagnosis. "
+        "Give only possible condition (probable), risk level, basic guidance, and when to see a doctor urgently. "
+        "Do not prescribe strong medicines. Keep it safe."
+    )
+
+    payload = {
+        "model": TEXT_MODEL,
+        "messages": [
+            {"role": "system", "content": system_msg},
+            {"role": "user", "content": prompt}
+        ],
+        "max_tokens": 350,
+        "temperature": 0.4
+    }
 
     r = requests.post(url, headers=headers, json=payload, timeout=60)
 
-    # Show detailed errors
-    try:
-        data = r.json()
-    except:
-        return f"Text model error: {r.status_code} (non-JSON response)"
-
     if r.status_code != 200:
-        return f"Text model error: {r.status_code} | {data}"
+        return f"❌ Text model error: {r.status_code}\n\n{r.text}"
 
-    if isinstance(data, list) and len(data) > 0:
-        return data[0].get("generated_text", "No response")
+    data = r.json()
+    return data["choices"][0]["message"]["content"]
 
-    # Some models return dict format
-    if isinstance(data, dict) and "generated_text" in data:
-        return data["generated_text"]
-
-    return str(data)
+# ----------------- GENERATE BUTTON -----------------
+st.subheader("🧾 Get Result")
 
 if st.button("Generate Guidance ✅"):
     prompt = f"""
-You are a health assistant for a pharmacy college demo project.
-Do NOT give confirmed diagnosis.
-Give possible causes, risk level, home care tips, and when to see doctor.
+User Symptoms:
+{symptoms_text}
 
-Symptoms: {symptoms_text}
-
-Return output exactly in this format:
+Task:
+Return output in EXACT format:
 1) Possible condition (probable)
 2) Risk level: Low/Medium/High
 3) What to do now (simple steps)
 4) When to visit doctor urgently
 5) Disclaimer (1 line)
 """
-    out = hf_text_generate(prompt)
-    st.success(out)
+    output = hf_chat_generate(prompt)
+    st.success(output)
+
+st.caption("⚠️ For demo/education only. Always consult a qualified doctor for diagnosis and treatment.")
