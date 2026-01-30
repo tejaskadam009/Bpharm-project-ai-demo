@@ -39,7 +39,7 @@ def hf_text_generate(prompt: str) -> str:
     if not HF_TOKEN:
         return "❌ HF_TOKEN missing. Add it in Streamlit → Manage App → Secrets."
 
-    url = f"https://router.huggingface.co/hf-inference/models/{TEXT_MODEL}"
+    url = f"https://router.huggingface.co/hf-inference/models/{TEXT_MODEL}/pipeline/text2text-generation"
 
     headers = {
         "Authorization": f"Bearer {HF_TOKEN}",
