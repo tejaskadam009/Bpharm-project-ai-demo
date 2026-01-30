@@ -7,11 +7,10 @@ st.set_page_config(page_title="AI Health Guidance Demo", page_icon="🩺")
 st.title("🩺 AI Health Guidance (B.Pharm Demo)")
 st.caption("⚠️ For awareness/education only. Not a medical diagnosis tool.")
 
-# ----------------- HUGGING FACE SETTINGS -----------------
 HF_TOKEN = st.secrets.get("HF_TOKEN", "")
 
-# A good open instruct model (works well for demo)
-TEXT_MODEL = "mistralai/Mistral-7B-Instruct-v0.2"
+# ✅ This model works well with text-generation API
+TEXT_MODEL = "google/flan-t5-base"
 
 # ----------------- DEMO CASES -----------------
 demo_cases = {
@@ -27,7 +26,7 @@ selected_case = st.selectbox("Choose a case", list(demo_cases.keys()))
 symptoms_text = demo_cases[selected_case]
 st.info(symptoms_text)
 
-# ----------------- IMAGE UPLOAD (OPTIONAL) -----------------
+# ----------------- IMAGE UPLOAD -----------------
 st.subheader("📷 Upload Image (Optional)")
 uploaded_file = st.file_uploader("Upload a rash / wound / skin image", type=["jpg", "jpeg", "png"])
 
@@ -35,60 +34,65 @@ if uploaded_file:
     img = Image.open(uploaded_file)
     st.image(img, caption="Uploaded Image", use_container_width=True)
 
-# ----------------- FUNCTION: CALL HF ROUTER CHAT API -----------------
-def hf_chat_generate(prompt: str) -> str:
+# ----------------- FUNCTION: HF ROUTER TEXT GENERATION -----------------
+def hf_text_generate(prompt: str) -> str:
     if not HF_TOKEN:
         return "❌ HF_TOKEN missing. Add it in Streamlit → Manage App → Secrets."
 
-    url = f"https://router.huggingface.co/hf-inference/models/{TEXT_MODEL}/v1/chat/completions"
+    url = f"https://router.huggingface.co/hf-inference/models/{TEXT_MODEL}"
 
     headers = {
         "Authorization": f"Bearer {HF_TOKEN}",
         "Content-Type": "application/json",
     }
 
-    system_msg = (
-        "You are an AI Health Guidance assistant made for a pharmacy college demo project. "
-        "Do NOT give a confirmed diagnosis. "
-        "Give only possible condition (probable), risk level, basic guidance, and when to see a doctor urgently. "
-        "Do not prescribe strong medicines. Keep it safe."
-    )
-
     payload = {
-        "model": TEXT_MODEL,
-        "messages": [
-            {"role": "system", "content": system_msg},
-            {"role": "user", "content": prompt}
-        ],
-        "max_tokens": 350,
-        "temperature": 0.4
+        "inputs": prompt,
+        "parameters": {
+            "max_new_tokens": 250,
+            "temperature": 0.4
+        },
+        "options": {
+            "wait_for_model": True
+        }
     }
 
     r = requests.post(url, headers=headers, json=payload, timeout=60)
 
-    if r.status_code != 200:
-        return f"❌ Text model error: {r.status_code}\n\n{r.text}"
+    # If HTML/text response comes
+    if "application/json" not in r.headers.get("content-type", ""):
+        return f"❌ Text model error: {r.status_code}\n{r.text}"
 
     data = r.json()
-    return data["choices"][0]["message"]["content"]
+
+    if r.status_code != 200:
+        return f"❌ Text model error: {r.status_code}\n{data}"
+
+    # flan-t5 returns list format
+    if isinstance(data, list) and len(data) > 0:
+        return data[0].get("generated_text", "No response")
+
+    return str(data)
 
 # ----------------- GENERATE BUTTON -----------------
 st.subheader("🧾 Get Result")
-
 if st.button("Generate Guidance ✅"):
     prompt = f"""
-User Symptoms:
-{symptoms_text}
+You are a health assistant for a pharmacy college demo project.
+Do NOT give confirmed diagnosis.
+Give only probable conditions, risk level, basic advice, and when to see doctor urgently.
 
-Task:
-Return output in EXACT format:
+Symptoms: {symptoms_text}
+
+Return output exactly in format:
 1) Possible condition (probable)
 2) Risk level: Low/Medium/High
 3) What to do now (simple steps)
 4) When to visit doctor urgently
 5) Disclaimer (1 line)
 """
-    output = hf_chat_generate(prompt)
+
+    output = hf_text_generate(prompt)
     st.success(output)
 
 st.caption("⚠️ For demo/education only. Always consult a qualified doctor for diagnosis and treatment.")
