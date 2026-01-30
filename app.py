@@ -34,7 +34,7 @@ def hf_text_generate(prompt):
     if not HF_TOKEN:
         return "HF token missing in Streamlit secrets."
 
-    url = f"https://api-inference.huggingface.co/models/{TEXT_MODEL}"
+    url = f"https://router.huggingface.co/models/{TEXT_MODEL}"
     headers = {"Authorization": f"Bearer {HF_TOKEN}"}
     payload = {"inputs": prompt, "options": {"wait_for_model": True}}
 
