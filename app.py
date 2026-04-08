@@ -258,10 +258,20 @@ if st.button("Analyze Symptoms"):
         st.subheader("Risk Level")
         st.write(risk)
 
-        st.subheader("Guidance")
+      st.subheader("Clinical Explanation")
 
-        for a in advice:
-            st.write("•", a)
+for e in explanation:
+    st.write("•", e)
+
+st.subheader("Red Flag Symptoms")
+
+for r in redflags:
+    st.write("•", r)
+
+st.subheader("Pharmacy Guidance")
+
+for o in otc:
+    st.write("•", o)
 
         if risk == "HIGH":
 
