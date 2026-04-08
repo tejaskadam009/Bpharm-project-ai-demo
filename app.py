@@ -2,65 +2,55 @@ import streamlit as st
 from PIL import Image
 
 # ---------------- PAGE CONFIG ----------------
+
 st.set_page_config(
     page_title="AI Health Guidance System",
     page_icon="🩺",
     layout="centered"
 )
 
+
 # ---------------- DISCLAIMER SCREEN ----------------
+
 if "accepted" not in st.session_state:
     st.session_state.accepted = False
 
+
 if not st.session_state.accepted:
 
-    st.markdown(
-        """
-<div style="padding:20px;border-radius:12px;
-background:rgba(255,255,255,0.05);
-border:1px solid rgba(255,255,255,0.15);">
+    st.markdown("""
+    ### 🩺 AI Health Guidance System
 
-<h2>🩺 AI Health Guidance System</h2>
+    #### Clinical Decision Support Prototype
 
-<b>Clinical Decision Support Prototype</b>
+    This application performs **symptom-based screening using rule-based clinical logic**
+    to assist early health risk identification.
 
-<hr>
+    ---
+    **Provides:**
 
-This system performs symptom-based screening using rule-based clinical logic
-to assist early health risk identification.
+    • Preliminary clinical impression  
+    • Risk classification  
+    • Pharmacist counselling guidance  
+    • Emergency referral suggestions  
 
-<br><br>
+    ---
+    **Does NOT provide:**
 
-<b>This application provides:</b>
+    • Confirmed diagnosis  
+    • Prescription decisions  
+    • Emergency treatment replacement  
 
-<ul>
-<li>Preliminary clinical impression</li>
-<li>Risk classification (Low / Moderate / High)</li>
-<li>Pharmacist counselling guidance</li>
-<li>Emergency referral recommendations</li>
-</ul>
-
-<b>This application does NOT provide:</b>
-
-<ul>
-<li>Confirmed diagnosis</li>
-<li>Prescription decisions</li>
-<li>Emergency treatment replacement</li>
-</ul>
-
-This system is intended strictly for educational screening support purposes.
-
-</div>
-""",
-        unsafe_allow_html=True
-    )
+    ---
+    Intended strictly for **educational screening support purposes**
+    """)
 
     agree = st.checkbox(
         "I understand this system is for educational screening support only"
     )
 
     if agree:
-        if st.button("Launch Clinical Screening Interface"):
+        if st.button("Launch Screening Interface"):
             st.session_state.accepted = True
             st.rerun()
 
@@ -68,44 +58,82 @@ This system is intended strictly for educational screening support purposes.
 
 
 # ---------------- HEADER ----------------
+
 st.title("🩺 AI Health Guidance System")
 
 st.caption(
-    "Symptom Screening • Risk Classification • Pharmacist Counselling Support"
+    "Community Pharmacy Clinical Screening Assistant"
 )
 
 st.info(
-    "Select symptoms below → Run screening → Review clinical guidance"
+    "Select symptoms → Run screening → Review guidance"
 )
 
 st.divider()
 
 
-# ---------------- SYMPTOM LIST ----------------
-st.subheader("Patient Symptom Intake")
+# ---------------- DEMOGRAPHIC PANEL ----------------
+
+st.subheader("👤 Patient Information")
+
+col1, col2, col3 = st.columns(3)
+
+age = col1.number_input("Age", 1, 100, 25)
+gender = col2.selectbox("Gender", ["Male", "Female", "Other"])
+duration = col3.selectbox(
+    "Symptom Duration",
+    ["<1 day", "1-3 days", "3-7 days", ">1 week"]
+)
+
+st.divider()
+
+
+# ---------------- LARGE SYMPTOM DATABASE ----------------
+
+st.subheader("📋 Symptom Selection")
 
 symptoms_list = [
 
-"Fever","Cough","Sore throat","Runny nose","Sneezing",
-"Breathlessness","Chest pain","Wheezing",
-"Headache","Dizziness","Confusion","Seizures",
+# GENERAL
+"Fever","Weakness","Fatigue","Weight loss","Night sweats",
+
+# RESPIRATORY
+"Cough","Sneezing","Runny nose","Breathlessness",
+"Wheezing","Sore throat","Chest tightness",
+
+# GI
 "Vomiting","Loose motion","Constipation",
-"Abdominal pain","Loss of appetite",
-"Burning urination","Frequent urination",
-"Blood in urine","Blood in stool",
-"Skin rash","Itching","Swelling",
-"Acidity","Heartburn",
-"Joint pain","Muscle pain",
-"Fatigue","Weakness",
-"Weight loss","Night sweats",
-"Blurred vision","Back pain",
-"Neck stiffness","Sensitivity to light",
-"Dehydration","High thirst",
+"Abdominal pain","Heartburn","Acidity",
+"Loss of appetite","Black stool","Blood in stool",
+
+# URINARY
+"Burning urination","Frequent urination","Blood in urine",
+
+# NEURO
+"Headache","Dizziness","Confusion",
+"Seizures","Sensitivity to light","Blurred vision",
+
+# MSK
+"Joint pain","Muscle pain","Back pain",
+
+# SKIN
+"Skin rash","Itching","Ring-shaped rash",
+"Swelling","Skin redness","Blisters",
+
+# CARDIAC
+"Chest pain","Palpitations",
+
+# ALLERGY
 "Face swelling","Tongue swelling",
-"Difficulty swallowing","Hoarseness",
-"Rapid breathing","Black stool",
-"Yellow eyes","Gas","Indigestion",
-"Skin infection","Ring-shaped rash"
+
+# ENDOCRINE
+"High thirst","Frequent urination diabetes",
+
+# ENT
+"Hoarseness","Difficulty swallowing",
+
+# DEHYDRATION
+"Dry mouth","Reduced urination"
 ]
 
 selected_symptoms = st.multiselect(
@@ -113,152 +141,182 @@ selected_symptoms = st.multiselect(
     symptoms_list
 )
 
-st.divider()
-
-
-# ---------------- IMAGE INPUT ----------------
 uploaded_img = st.file_uploader(
-    "Upload rash / wound image (optional)",
-    type=["jpg", "jpeg", "png"]
+    "Upload clinical image (optional)",
+    type=["jpg","jpeg","png"]
 )
 
 if uploaded_img:
-    st.image(Image.open(uploaded_img), use_container_width=True)
+    st.image(Image.open(uploaded_img))
+
 
 st.divider()
 
 
 # ---------------- CLINICAL ENGINE ----------------
+
 def assess(symptoms):
 
     s = set(symptoms)
 
-    # HIGH RISK CONDITIONS
-    if "Chest pain" in s or "Breathlessness" in s:
-        return (
-            "Possible Cardiac or Respiratory Emergency",
+
+# HIGH RISK CONDITIONS
+
+    if "Chest pain" in s and "Breathlessness" in s:
+        return(
+            "Possible Cardiac Emergency",
             "HIGH",
-            ["May indicate myocardial infarction or acute respiratory condition"],
-            ["Pain radiating to arm/jaw", "Severe breathing difficulty"],
-            ["Immediate hospital referral required"]
+            "Possible myocardial infarction pattern detected"
         )
 
-    if "Seizures" in s or "Confusion" in s:
-        return (
+
+    if "Seizures" in s:
+        return(
             "Possible Neurological Emergency",
             "HIGH",
-            ["Possible seizure disorder or CNS pathology"],
-            ["Repeated seizures", "Loss of consciousness"],
-            ["Urgent neurological consultation required"]
+            "Seizure activity requires urgent evaluation"
         )
 
-    # MODERATE RISK CONDITIONS
+
+# RESPIRATORY CONDITIONS
+
+    if "Sneezing" in s and "Runny nose" in s:
+        return(
+            "Allergic Rhinitis",
+            "LOW",
+            "Likely allergy-related nasal irritation"
+        )
+
+
     if "Fever" in s and "Cough" in s:
-        return (
+        return(
             "Upper Respiratory Infection",
             "MEDIUM",
-            ["Suggestive of viral respiratory infection"],
-            ["Persistent fever >3 days", "Breathlessness"],
-            ["Paracetamol + steam inhalation recommended"]
+            "Likely viral respiratory infection"
         )
 
-    if "Vomiting" in s or "Loose motion" in s:
-        return (
+
+# GI CONDITIONS
+
+    if "Loose motion" in s and "Vomiting" in s:
+        return(
             "Acute Gastroenteritis",
             "MEDIUM",
-            ["Suggestive of GI infection"],
-            ["Severe dehydration", "Blood in stool"],
-            ["ORS + hydration recommended"]
+            "Likely food-borne infection"
         )
 
-    # LOW RISK CONDITIONS
-    if "Skin rash" in s or "Itching" in s:
-        return (
-            "Skin Allergy / Fungal Infection",
+
+    if "Acidity" in s:
+        return(
+            "GERD / Gastritis",
             "LOW",
-            ["Likely dermatological irritation"],
-            ["Spreading rash"],
-            ["Topical antifungal may help"]
+            "Acid reflux pattern detected"
         )
 
-    return (
+
+# UTI
+
+    if "Burning urination" in s:
+        return(
+            "Urinary Tract Infection",
+            "MEDIUM",
+            "Typical urinary infection symptoms"
+        )
+
+
+# SKIN
+
+    if "Ring-shaped rash" in s:
+        return(
+            "Fungal Skin Infection",
+            "LOW",
+            "Dermatophyte infection likely"
+        )
+
+
+    if "Skin rash" in s:
+        return(
+            "Allergic Dermatitis",
+            "LOW",
+            "Possible allergy-based rash"
+        )
+
+
+# NEURO
+
+    if "Headache" in s:
+        return(
+            "Tension Headache",
+            "LOW",
+            "Stress-related headache pattern"
+        )
+
+
+# DEFAULT
+
+    return(
         "Insufficient Clinical Information",
         "UNKNOWN",
-        ["More symptoms required for assessment"],
-        ["Persistent symptoms"],
-        ["Consult healthcare professional"]
+        "More symptoms required"
     )
 
 
 # ---------------- SCREENING BUTTON ----------------
+
 if st.button("Run Clinical Screening"):
 
     if not selected_symptoms:
 
-        st.warning("Please select at least one symptom")
+        st.warning("Please select symptoms")
 
     else:
 
-        condition, risk, explanation, redflags, guidance = assess(selected_symptoms)
+        condition, risk, explanation = assess(selected_symptoms)
 
-        st.divider()
-
-        st.subheader("Preliminary Clinical Impression")
+        st.subheader("🧠 Clinical Impression")
         st.success(condition)
 
-        st.subheader("Risk Classification")
+        st.subheader("⚠ Risk Level")
 
         if risk == "HIGH":
-            st.error("🔴 HIGH RISK – Immediate evaluation recommended")
+            st.error("HIGH RISK – Immediate medical evaluation required")
 
         elif risk == "MEDIUM":
-            st.warning("🟠 MODERATE RISK – Consultation advised")
+            st.warning("MODERATE RISK – Consultation advised")
 
         elif risk == "LOW":
-            st.success("🟢 LOW RISK – Routine monitoring advised")
+            st.success("LOW RISK – Routine monitoring")
 
         else:
-            st.info("Insufficient data")
+            st.info("More data required")
 
-        st.subheader("Clinical Explanation")
-        for e in explanation:
-            st.write("•", e)
+        st.subheader("📖 Explanation")
+        st.write(explanation)
 
-        st.subheader("Urgent Warning Indicators")
-        for r in redflags:
-            st.write("•", r)
 
-        st.subheader("Pharmacist Counselling Guidance")
-        for g in guidance:
-            st.write("•", g)
+# EMERGENCY BUTTONS
 
-        # ---------------- EMERGENCY BUTTONS ----------------
         if risk == "HIGH":
 
             st.error("Emergency referral recommended")
 
-            c1, c2, c3 = st.columns(3)
+            col1, col2 = st.columns(2)
 
-            with c1:
+            with col1:
                 st.markdown(
-                    '<a href="tel:108"><button style="width:100%;padding:14px;background:red;color:white;border:none;border-radius:10px;">🚑 Ambulance</button></a>',
+                    '<a href="tel:108"><button style="width:100%;padding:12px;background:red;color:white;border:none;border-radius:8px;">🚑 Ambulance</button></a>',
                     unsafe_allow_html=True
                 )
 
-            with c2:
+            with col2:
                 st.markdown(
-                    '<a href="tel:112"><button style="width:100%;padding:14px;background:orange;color:white;border:none;border-radius:10px;">☎ Emergency</button></a>',
+                    '<a href="tel:112"><button style="width:100%;padding:12px;background:orange;color:white;border:none;border-radius:8px;">☎ Emergency</button></a>',
                     unsafe_allow_html=True
                 )
 
-            with c3:
-                st.markdown(
-                    '<a href="tel:+919999999999"><button style="width:100%;padding:14px;background:green;color:white;border:none;border-radius:10px;">👨‍⚕️ Doctor</button></a>',
-                    unsafe_allow_html=True
-                )
 
 st.divider()
 
 st.caption(
-    "AI Health Guidance System | Clinical Decision Support Prototype | B.Pharm Final Year Project"
+    "AI Health Guidance System | B.Pharm Clinical Screening Prototype"
 )
