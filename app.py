@@ -2,6 +2,7 @@ import streamlit as st
 from PIL import Image
 
 # ---------------- PAGE CONFIG ----------------
+
 st.set_page_config(
     page_title="AI Health Guidance System",
     page_icon="🩺",
@@ -20,7 +21,7 @@ if not st.session_state.accepted:
 
     **Clinical Decision Support Prototype**
 
-    This system performs symptom-based screening using rule-based clinical logic.
+    This system performs symptom-based screening using structured rule-based logic.
 
     ✔ Preliminary clinical impression  
     ✔ Risk classification  
@@ -44,6 +45,7 @@ if not st.session_state.accepted:
 
     st.stop()
 
+
 # ---------------- HEADER ----------------
 
 st.title("🩺 AI Health Guidance System")
@@ -51,15 +53,16 @@ st.caption("Community Pharmacy Clinical Screening Assistant")
 
 st.divider()
 
-# ---------------- PATIENT INFO PANEL ----------------
+
+# ---------------- PATIENT PANEL ----------------
 
 st.subheader("👤 Patient Information")
 
-col1, col2, col3 = st.columns(3)
+c1, c2, c3 = st.columns(3)
 
-age = col1.number_input("Age", 1, 100, 25)
-gender = col2.selectbox("Gender", ["Male", "Female", "Other"])
-duration = col3.selectbox(
+age = c1.number_input("Age", 1, 100, 25)
+gender = c2.selectbox("Gender", ["Male", "Female", "Other"])
+duration = c3.selectbox(
     "Symptom Duration",
     ["<1 day", "1-3 days", "3-7 days", ">1 week"]
 )
@@ -67,6 +70,7 @@ duration = col3.selectbox(
 severity = st.slider("Symptom Severity Level", 1, 10, 3)
 
 st.divider()
+
 
 # ---------------- SYMPTOM DATABASE ----------------
 
@@ -111,6 +115,7 @@ if uploaded_img:
 
 st.divider()
 
+
 # ---------------- CLINICAL ENGINE ----------------
 
 def assess(symptoms, severity):
@@ -119,8 +124,6 @@ def assess(symptoms, severity):
 
     risk_score = severity
 
-
-# ---------------- EMERGENCY SCORING ----------------
 
     emergency_symptoms = [
         "Chest pain",
@@ -131,13 +134,6 @@ def assess(symptoms, severity):
         "Blood in urine"
     ]
 
-    for symptom in emergency_symptoms:
-        if symptom in s:
-            risk_score += 6
-
-
-# ---------------- MODERATE CONDITIONS ----------------
-
     moderate_symptoms = [
         "Fever",
         "Vomiting",
@@ -146,13 +142,6 @@ def assess(symptoms, severity):
         "Palpitations"
     ]
 
-    for symptom in moderate_symptoms:
-        if symptom in s:
-            risk_score += 3
-
-
-# ---------------- LOW RISK CONDITIONS ----------------
-
     mild_symptoms = [
         "Sneezing",
         "Runny nose",
@@ -160,6 +149,17 @@ def assess(symptoms, severity):
         "Acidity",
         "Gas"
     ]
+
+
+    for symptom in emergency_symptoms:
+        if symptom in s:
+            risk_score += 6
+
+
+    for symptom in moderate_symptoms:
+        if symptom in s:
+            risk_score += 3
+
 
     for symptom in mild_symptoms:
         if symptom in s:
@@ -291,6 +291,7 @@ if st.button("Run Clinical Screening"):
         st.subheader("🧠 Clinical Impression")
         st.success(condition)
 
+
         st.subheader("⚠ Risk Level")
 
         if risk == "HIGH":
@@ -325,7 +326,7 @@ if st.button("Run Clinical Screening"):
 
             st.error("Emergency referral recommended")
 
-            c1, c2 = st.columns(2)
+            c1, c2, c3 = st.columns(3)
 
             with c1:
                 st.markdown(
@@ -336,6 +337,12 @@ if st.button("Run Clinical Screening"):
             with c2:
                 st.markdown(
                     '<a href="tel:112"><button style="width:100%;padding:12px;background:orange;color:white;border:none;border-radius:8px;">☎ Emergency</button></a>',
+                    unsafe_allow_html=True
+                )
+
+            with c3:
+                st.markdown(
+                    '<a href="tel:+919999999999"><button style="width:100%;padding:12px;background:green;color:white;border:none;border-radius:8px;">👨‍⚕️ Call Doctor</button></a>',
                     unsafe_allow_html=True
                 )
 
