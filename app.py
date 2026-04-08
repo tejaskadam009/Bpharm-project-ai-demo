@@ -9,70 +9,114 @@ st.set_page_config(
     layout="centered"
 )
 
-# ---------------- DISCLAIMER SCREEN ----------------
+# ---------------- SESSION STATE ----------------
 
 if "accepted" not in st.session_state:
     st.session_state.accepted = False
 
+
+# ================= ENTRY CONSENT SCREEN =================
+
 if not st.session_state.accepted:
 
     st.markdown("""
-    ### 🩺 AI Health Guidance System
+    <div style="
+        padding:30px;
+        border-radius:16px;
+        background:rgba(255,255,255,0.05);
+        border:1px solid rgba(255,255,255,0.15);
+        line-height:1.6;
+    ">
 
-    **Clinical Decision Support Prototype**
+    <h2>🩺 AI Health Guidance System</h2>
 
-    This system performs symptom-based screening using structured rule-based logic.
+    <h4>Community Pharmacy Clinical Screening Interface</h4>
 
-    ✔ Preliminary clinical impression  
-    ✔ Risk classification  
-    ✔ Pharmacist counselling guidance  
-    ✔ Emergency referral suggestions  
+    <hr>
 
-    ❌ Not a confirmed diagnosis  
-    ❌ Not a prescription system  
+    <b>Purpose of this system</b>
 
-    Intended strictly for educational screening support purposes.
-    """)
+    This application supports early symptom-based screening and referral decisions
+    before physician consultation.
+
+    <br><br>
+
+    <b>✔ Provides</b>
+
+    • Preliminary clinical impression  
+    • Risk classification  
+    • Pharmacist counselling guidance  
+    • Emergency referral suggestions  
+
+    <br>
+
+    <b>❌ Does NOT provide</b>
+
+    • Confirmed diagnosis  
+    • Prescription decisions  
+    • Lab interpretation  
+
+    <br>
+
+    <b>⚠ Educational B.Pharm Clinical Prototype</b>
+
+    Always consult a healthcare professional.
+
+    </div>
+    """, unsafe_allow_html=True)
 
     agree = st.checkbox(
-        "I understand this system is for educational screening support only"
+        "I understand this system provides screening support only."
     )
 
     if agree:
-        if st.button("Launch Screening Interface"):
+        if st.button("Enter Clinical Screening Interface"):
             st.session_state.accepted = True
             st.rerun()
 
     st.stop()
 
 
-# ---------------- HEADER ----------------
+# ================= HEADER =================
 
 st.title("🩺 AI Health Guidance System")
-st.caption("Community Pharmacy Clinical Screening Assistant")
+
+st.caption(
+    "Community Pharmacy Clinical Screening Assistant | Risk Classification | Referral Guidance"
+)
 
 st.divider()
 
 
-# ---------------- PATIENT PANEL ----------------
+# ================= PATIENT INFO PANEL =================
 
 st.subheader("👤 Patient Information")
 
-c1, c2, c3 = st.columns(3)
+col1, col2, col3 = st.columns(3)
 
-age = c1.number_input("Age", 1, 100, 25)
-gender = c2.selectbox("Gender", ["Male", "Female", "Other"])
-duration = c3.selectbox(
-    "Symptom Duration",
-    ["<1 day", "1-3 days", "3-7 days", ">1 week"]
+age = col1.number_input("Age", 1, 100, 25)
+
+gender = col2.selectbox(
+    "Gender",
+    ["Male", "Female", "Other"]
 )
 
-severity = st.slider("Symptom Severity Level", 1, 10, 3)
+duration = col3.selectbox(
+    "Symptom Duration",
+    ["< 1 day", "1 – 3 days", "3 – 7 days", "> 1 week"]
+)
+
+severity = st.slider(
+    "Symptom Severity Level",
+    1,
+    10,
+    3
+)
 
 st.divider()
 
 
-# ---------------- SYMPTOM DATABASE ----------------
+# ================= SYMPTOM DATABASE =================
 
 st.subheader("📋 Symptom Selection")
 
@@ -112,29 +156,67 @@ uploaded_img = st.file_uploader(
 
 if uploaded_img:
     st.image(Image.open(uploaded_img))
+    st.info("Image uploaded — dermatologist consultation recommended if worsening")
 
 st.divider()
 
 
-# ---------------- CLINICAL ENGINE ----------------
+# ================= CLINICAL ENGINE =================
 
-def assess(symptoms, severity):
+def assess(symptoms, severity, age, duration):
 
     s = set(symptoms)
 
     risk_score = severity
 
 
+# ================= AGE-BASED RISK =================
+
+    if age < 5 and "Fever" in s:
+        return (
+            "Pediatric Fever Risk",
+            "HIGH",
+            "Children under 5 with fever require urgent evaluation",
+            ["Persistent fever"],
+            ["Immediate pediatric consultation required"]
+        )
+
+    if age > 60:
+        risk_score += 2
+
+
+# ================= DURATION RISK =================
+
+    if duration == "> 1 week":
+        risk_score += 3
+
+
+# ================= EMERGENCY SYMPTOMS =================
+
     emergency_symptoms = [
+
         "Chest pain",
         "Breathlessness",
         "Seizures",
         "Confusion",
         "Blood in stool",
-        "Blood in urine"
+        "Blood in urine",
+        "Black stool",
+        "Tongue swelling",
+        "Face swelling"
     ]
 
+    for symptom in emergency_symptoms:
+
+        if symptom in s:
+
+            risk_score += 6
+
+
+# ================= MODERATE SYMPTOMS =================
+
     moderate_symptoms = [
+
         "Fever",
         "Vomiting",
         "Loose motion",
@@ -142,7 +224,17 @@ def assess(symptoms, severity):
         "Palpitations"
     ]
 
+    for symptom in moderate_symptoms:
+
+        if symptom in s:
+
+            risk_score += 3
+
+
+# ================= MILD SYMPTOMS =================
+
     mild_symptoms = [
+
         "Sneezing",
         "Runny nose",
         "Headache",
@@ -150,130 +242,160 @@ def assess(symptoms, severity):
         "Gas"
     ]
 
-
-    for symptom in emergency_symptoms:
-        if symptom in s:
-            risk_score += 6
-
-
-    for symptom in moderate_symptoms:
-        if symptom in s:
-            risk_score += 3
-
-
     for symptom in mild_symptoms:
+
         if symptom in s:
+
             risk_score += 1
 
 
-# ---------------- EMERGENCY DECISION ----------------
+# ================= HIGH RISK =================
 
     if risk_score >= 12:
 
-        return(
+        return (
+
             "Possible Medical Emergency",
             "HIGH",
+
             "Critical symptom cluster detected requiring urgent evaluation",
-            [
-                "Chest pain",
-                "Breathlessness",
-                "Seizures",
-                "Confusion"
-            ],
-            [
-                "Immediate hospital referral required"
-            ]
+
+            emergency_symptoms,
+
+            ["Immediate hospital referral required"]
+
         )
 
 
-# ---------------- RESPIRATORY CONDITIONS ----------------
+# ================= RESPIRATORY =================
 
     if "Sneezing" in s and "Runny nose" in s:
 
-        return(
+        return (
+
             "Common Cold / Allergic Rhinitis",
             "LOW",
+
             "Typical upper respiratory irritation pattern",
-            ["Symptoms worsening >5 days"],
-            ["Steam inhalation recommended"]
+
+            ["Symptoms worsening > 5 days"],
+
+            ["Steam inhalation", "Hydration", "Rest"]
+
         )
 
 
     if "Fever" in s and "Cough" in s:
 
-        return(
+        return (
+
             "Upper Respiratory Infection",
+
             "MEDIUM",
+
             "Suggestive respiratory infection",
-            ["Persistent fever >3 days"],
-            ["Paracetamol recommended"]
+
+            ["Persistent fever > 3 days"],
+
+            ["Paracetamol", "Steam inhalation", "Consult pharmacist"]
+
         )
 
 
-# ---------------- GI CONDITIONS ----------------
+# ================= GI =================
 
     if "Loose motion" in s and "Vomiting" in s:
 
-        return(
+        return (
+
             "Acute Gastroenteritis",
+
             "MEDIUM",
+
             "GI infection pattern detected",
+
             ["Severe dehydration"],
-            ["ORS therapy recommended"]
+
+            ["ORS therapy", "Hydration", "Medical consultation if persistent"]
+
         )
 
 
-# ---------------- UTI ----------------
+# ================= UTI =================
 
     if "Burning urination" in s and "Frequent urination" in s:
 
-        return(
+        return (
+
             "Urinary Tract Infection",
+
             "MEDIUM",
+
             "Typical urinary infection symptoms",
+
             ["Back pain with fever"],
-            ["Medical consultation advised"]
+
+            ["Increase fluids", "Consult physician"]
+
         )
 
 
-# ---------------- SKIN CONDITIONS ----------------
+# ================= SKIN =================
 
     if "Ring-shaped rash" in s:
 
-        return(
+        return (
+
             "Fungal Skin Infection",
+
             "LOW",
+
             "Dermatophyte infection suspected",
+
             ["Spreading rash"],
-            ["Topical antifungal recommended"]
+
+            ["Topical antifungal cream advised"]
+
         )
 
 
-# ---------------- MULTI-SYMPTOM CLUSTER ----------------
+# ================= MULTI SYMPTOM =================
 
     if len(s) >= 5:
 
-        return(
+        return (
+
             "Multiple Symptom Cluster Detected",
+
             "MEDIUM",
+
             "Multiple symptoms detected requiring consultation",
+
             ["Persistent symptoms"],
+
             ["Consult physician"]
+
         )
 
 
-# ---------------- DEFAULT ----------------
+# ================= DEFAULT =================
 
-    return(
+    return (
+
         "Non-specific Mild Symptom Pattern",
+
         "LOW",
+
         "Symptoms suggest mild condition",
+
         ["Symptoms worsening"],
+
         ["Monitor symptoms"]
+
     )
 
 
-# ---------------- SCREENING BUTTON ----------------
+# ================= SCREENING BUTTON =================
 
 if st.button("Run Clinical Screening"):
 
@@ -285,7 +407,9 @@ if st.button("Run Clinical Screening"):
 
         condition, risk, explanation, redflags, guidance = assess(
             selected_symptoms,
-            severity
+            severity,
+            age,
+            duration
         )
 
         st.subheader("🧠 Clinical Impression")
@@ -295,12 +419,15 @@ if st.button("Run Clinical Screening"):
         st.subheader("⚠ Risk Level")
 
         if risk == "HIGH":
+
             st.error("HIGH RISK – Immediate evaluation required")
 
         elif risk == "MEDIUM":
+
             st.warning("MODERATE RISK – Consultation advised")
 
         else:
+
             st.success("LOW RISK – Routine monitoring recommended")
 
 
@@ -320,7 +447,7 @@ if st.button("Run Clinical Screening"):
             st.write("•", g)
 
 
-# ---------------- EMERGENCY BUTTONS ----------------
+# ================= EMERGENCY BUTTONS =================
 
         if risk == "HIGH":
 
@@ -350,5 +477,5 @@ if st.button("Run Clinical Screening"):
 st.divider()
 
 st.caption(
-    "AI Health Guidance System | B.Pharm Clinical Screening Prototype"
+    "AI Health Guidance System | Clinical Decision Support Prototype | B.Pharm Final Year Project"
 )
