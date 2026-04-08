@@ -8,13 +8,13 @@ st.set_page_config(
     layout="centered"
 )
 
-# ---------------- APPEARANCE TOGGLE ----------------
+# ---------------- DARK/LIGHT MODE TOGGLE ----------------
 if "mode" not in st.session_state:
     st.session_state.mode = "dark"
 
-col1, col2 = st.columns([6,1])
+col_left, col_toggle = st.columns([6,1])
 
-with col2:
+with col_toggle:
     if st.button("🌓"):
         if st.session_state.mode == "dark":
             st.session_state.mode = "light"
@@ -22,15 +22,16 @@ with col2:
             st.session_state.mode = "dark"
         st.rerun()
 
-# ---------------- STYLE SETTINGS ----------------
+
+# ---------------- STYLE ENGINE ----------------
 if st.session_state.mode == "light":
 
     CARD_STYLE = """
     background:#f8fafc;
-    color:black;
     border:1px solid #e2e8f0;
     padding:18px;
     border-radius:12px;
+    color:black;
     """
 
 else:
@@ -42,10 +43,10 @@ else:
     border-radius:12px;
     """
 
+
 # ---------------- DISCLAIMER SCREEN ----------------
 if "accepted" not in st.session_state:
     st.session_state.accepted = False
-
 
 if not st.session_state.accepted:
 
@@ -62,24 +63,24 @@ if not st.session_state.accepted:
         This system performs symptom-based screening using rule-based clinical logic
         to assist early health risk identification.
 
-        <br><br>
+        <br>
 
         <b>This application provides:</b>
 
-        <ul>
-        <li>Preliminary clinical impression</li>
-        <li>Risk classification (Low / Moderate / High)</li>
-        <li>Pharmacist counselling guidance</li>
-        <li>Emergency referral recommendations</li>
-        </ul>
+        • Preliminary clinical impression  
+        • Risk classification (Low / Moderate / High)  
+        • Pharmacist counselling guidance  
+        • Emergency referral recommendations  
+
+        <br>
 
         <b>This application does NOT provide:</b>
 
-        <ul>
-        <li>Confirmed diagnosis</li>
-        <li>Prescription decisions</li>
-        <li>Emergency treatment replacement</li>
-        </ul>
+        • Confirmed diagnosis  
+        • Prescription decisions  
+        • Emergency treatment replacement  
+
+        <br>
 
         This system is intended strictly for educational screening support purposes.
 
@@ -113,7 +114,8 @@ st.info(
 
 st.divider()
 
-# ---------------- SYMPTOMS ----------------
+
+# ---------------- SYMPTOM INPUT ----------------
 st.subheader("Patient Symptom Intake")
 
 symptoms_list = [
@@ -147,6 +149,7 @@ selected_symptoms = st.multiselect(
 
 st.divider()
 
+
 # ---------------- IMAGE INPUT ----------------
 uploaded_img = st.file_uploader(
     "Upload clinical image (optional)",
@@ -158,30 +161,64 @@ if uploaded_img:
 
 st.divider()
 
+
 # ---------------- CLINICAL ENGINE ----------------
 def assess(symptoms):
 
     s = set(symptoms)
 
     if "Chest pain" in s or "Breathlessness" in s:
-        return "Possible Cardiac or Respiratory Emergency", "HIGH"
+        return (
+            "Possible Cardiac or Respiratory Emergency",
+            "HIGH",
+            ["Chest pain with breathlessness may indicate heart attack or lung emergency"],
+            ["Pain spreading to arm or jaw", "Severe breathing difficulty"],
+            ["Immediate hospital evaluation required"]
+        )
 
     if "Seizures" in s or "Confusion" in s:
-        return "Possible Neurological Emergency", "HIGH"
+        return (
+            "Possible Neurological Emergency",
+            "HIGH",
+            ["Seizures may indicate brain-related emergency"],
+            ["Loss of consciousness", "Repeated seizures"],
+            ["Emergency neurological consultation required"]
+        )
 
     if "Fever" in s and "Cough" in s:
-        return "Upper Respiratory Infection / Viral Fever", "MEDIUM"
+        return (
+            "Upper Respiratory Infection",
+            "MEDIUM",
+            ["Symptoms indicate viral respiratory infection"],
+            ["Fever lasting >3 days", "Breathing difficulty"],
+            ["Paracetamol may help", "Steam inhalation recommended"]
+        )
 
-    if "Burning urination" in s:
-        return "Urinary Tract Infection", "MEDIUM"
+    if "Vomiting" in s or "Loose motion" in s:
+        return (
+            "Acute Gastroenteritis",
+            "MEDIUM",
+            ["Vomiting or diarrhea indicates GI infection"],
+            ["Severe dehydration"],
+            ["ORS recommended"]
+        )
 
     if "Skin rash" in s or "Itching" in s:
-        return "Skin Allergy / Fungal Infection", "LOW"
+        return (
+            "Skin Allergy or Fungal Infection",
+            "LOW",
+            ["Dermatological irritation suspected"],
+            ["Spreading rash"],
+            ["Topical antifungal recommended"]
+        )
 
-    if "Acidity" in s:
-        return "Acidity / Gastritis", "LOW"
-
-    return "Insufficient Clinical Information", "UNKNOWN"
+    return (
+        "Insufficient Clinical Information",
+        "UNKNOWN",
+        ["More symptoms required"],
+        ["Persistent symptoms"],
+        ["Consult healthcare professional"]
+    )
 
 
 # ---------------- ANALYSIS BUTTON ----------------
@@ -193,7 +230,7 @@ if st.button("Run Clinical Screening"):
 
     else:
 
-        condition, risk = assess(selected_symptoms)
+        condition, risk, explanation, redflags, guidance = assess(selected_symptoms)
 
         st.divider()
 
@@ -213,6 +250,45 @@ if st.button("Run Clinical Screening"):
 
         else:
             st.info("Insufficient data for classification")
+
+
+        st.subheader("Clinical Interpretation")
+        for e in explanation:
+            st.write("•", e)
+
+        st.subheader("Urgent Warning Indicators")
+        for r in redflags:
+            st.write("•", r)
+
+        st.subheader("Pharmacist Counselling Guidance")
+        for g in guidance:
+            st.write("•", g)
+
+
+        if risk == "HIGH":
+
+            st.error("Emergency referral recommended")
+
+            col1, col2, col3 = st.columns(3)
+
+            with col1:
+                st.markdown(
+                    '<a href="tel:108"><button style="width:100%;padding:14px;background:red;color:white;border:none;border-radius:10px;">🚑 Ambulance</button></a>',
+                    unsafe_allow_html=True
+                )
+
+            with col2:
+                st.markdown(
+                    '<a href="tel:112"><button style="width:100%;padding:14px;background:orange;color:white;border:none;border-radius:10px;">☎ Emergency</button></a>',
+                    unsafe_allow_html=True
+                )
+
+            with col3:
+                st.markdown(
+                    '<a href="tel:+919999999999"><button style="width:100%;padding:14px;background:green;color:white;border:none;border-radius:10px;">👨‍⚕️ Doctor</button></a>',
+                    unsafe_allow_html=True
+                )
+
 
 st.divider()
 
