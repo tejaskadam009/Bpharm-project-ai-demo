@@ -16,17 +16,18 @@ if not st.session_state.accepted:
     st.title("⚠️ Important Notice")
 
     st.write("""
-This application provides:
+This system provides:
 
 ✔ Possible condition (probable)
 ✔ Risk level estimation
-✔ Guidance and referral suggestions
+✔ Pharmacy guidance
+✔ Emergency referral suggestions
 
-This application does NOT provide:
+This system does NOT provide:
 
 ❌ Confirmed diagnosis
-❌ Emergency treatment
 ❌ Prescription
+❌ Emergency treatment replacement
 """)
 
     if st.checkbox("I understand and wish to continue"):
@@ -36,217 +37,210 @@ This application does NOT provide:
 
     st.stop()
 
+
 # ---------------- HEADER ----------------
 st.title("🩺 AI Health Guidance System")
-st.caption("Symptom Screening • Risk Assessment • Referral Guidance")
+st.caption("Symptom Screening • Risk Assessment • Pharmacy Guidance")
 
-# ---------------- SYMPTOMS LIST ----------------
+
+# ---------------- SYMPTOMS ----------------
 symptoms_list = [
-"Fever","Cough","Sore throat","Breathlessness","Chest pain",
-"Vomiting","Loose motion","Burning urination",
-"Rash","Itching","Acidity","Seizures","Confusion",
-"Blood in stool","Blood in urine"
+    "Fever","Cough","Sore throat","Breathlessness","Chest pain",
+    "Vomiting","Loose motion","Burning urination",
+    "Rash","Itching","Acidity",
+    "Seizures","Confusion",
+    "Blood in stool","Blood in urine"
 ]
 
-# ---------------- RISK ENGINE ----------------
+
+# ---------------- CLINICAL ENGINE ----------------
 def assess(symptoms):
 
     s = set(symptoms)
 
     # ---------------- HIGH RISK ----------------
-
     if "Chest pain" in s or "Breathlessness" in s:
+
         return (
             "Possible Cardiac or Respiratory Emergency",
             "HIGH",
             [
-                "Chest pain and breathlessness may indicate heart attack or serious lung condition.",
-                "Sit upright and avoid physical activity.",
-                "Immediate hospital evaluation is strongly recommended."
+                "Chest pain with breathlessness may indicate heart attack or lung emergency.",
+                "Immediate medical evaluation is required."
             ],
             [
-                "Severe chest tightness",
-                "Pain spreading to arm/jaw",
+                "Pain spreading to arm or jaw",
+                "Severe breathlessness",
                 "Bluish lips or fingers"
             ],
             [
-                "Do NOT self-medicate.",
-                "Emergency medical care required immediately."
+                "Do NOT self-medicate",
+                "Seek emergency hospital care immediately"
             ]
         )
 
     if "Seizures" in s or "Confusion" in s:
+
         return (
             "Possible Neurological Emergency",
             "HIGH",
             [
-                "Seizures or confusion may indicate brain-related emergency.",
-                "Ensure patient safety during seizure.",
-                "Immediate medical supervision required."
+                "Seizures or confusion indicate possible brain emergency.",
+                "Immediate neurological evaluation required."
             ],
             [
-                "Loss of consciousness",
                 "Repeated seizures",
+                "Loss of consciousness",
                 "Severe headache with vomiting"
             ],
             [
-                "Emergency neurological assessment required."
+                "Emergency hospital visit required"
             ]
         )
 
     if "Blood in stool" in s or "Blood in urine" in s:
+
         return (
             "Possible Internal Bleeding",
             "HIGH",
             [
-                "Presence of blood in stool or urine requires urgent evaluation.",
-                "Avoid delaying consultation."
+                "Presence of blood in stool or urine requires urgent diagnosis."
             ],
             [
-                "Weakness or dizziness",
-                "Black-colored stool",
-                "Persistent bleeding"
+                "Persistent bleeding",
+                "Weakness or dizziness"
             ],
             [
-                "Hospital consultation immediately recommended."
+                "Immediate doctor consultation recommended"
             ]
         )
 
     # ---------------- MEDIUM RISK ----------------
-
     if "Fever" in s and "Cough" in s:
+
         return (
-            "Viral Fever / Upper Respiratory Infection",
+            "Viral Fever / Respiratory Infection",
             "MEDIUM",
             [
-                "Symptoms indicate possible viral respiratory infection.",
-                "Maintain hydration and rest.",
-                "Monitor body temperature regularly."
+                "Symptoms suggest respiratory infection.",
+                "Rest and hydration recommended."
             ],
             [
-                "Persistent fever beyond 3 days",
-                "Breathing difficulty",
-                "Severe weakness"
+                "Fever lasting more than 3 days",
+                "Breathing difficulty"
             ],
             [
-                "Paracetamol may be used for fever (if not contraindicated).",
-                "Steam inhalation and warm fluids recommended."
+                "Paracetamol may help reduce fever",
+                "Steam inhalation recommended"
             ]
         )
 
     if "Vomiting" in s or "Loose motion" in s:
+
         return (
             "Acute Gastroenteritis",
             "MEDIUM",
             [
-                "Vomiting and diarrhea suggest gastrointestinal infection.",
-                "Maintain hydration using ORS."
+                "Vomiting or diarrhea suggest stomach infection."
             ],
             [
                 "Severe dehydration",
-                "Blood in stool",
-                "Continuous vomiting"
+                "Blood in stool"
             ],
             [
-                "ORS recommended.",
-                "Avoid oily and spicy foods."
+                "ORS recommended",
+                "Avoid oily and spicy food"
             ]
         )
 
     if "Burning urination" in s:
+
         return (
             "Possible Urinary Tract Infection",
             "MEDIUM",
             [
-                "Burning urination commonly indicates urinary infection.",
-                "Increase fluid intake."
+                "Burning urination indicates possible urinary infection."
             ],
             [
-                "Fever with back pain",
+                "Back pain with fever",
                 "Blood in urine"
             ],
             [
-                "Urine examination advised.",
-                "Doctor consultation recommended."
+                "Increase water intake",
+                "Urine test recommended"
             ]
         )
 
     # ---------------- LOW RISK ----------------
-
     if "Rash" in s or "Itching" in s:
+
         return (
             "Skin Allergy or Fungal Infection",
             "LOW",
             [
-                "Skin rash with itching often indicates allergy or fungal infection.",
-                "Keep affected area dry and clean."
+                "Skin rash with itching usually indicates allergy or fungal infection."
             ],
             [
                 "Rapid spreading rash",
-                "Pus formation",
-                "Fever with rash"
+                "Pus formation"
             ],
             [
-                "Topical antifungal or antihistamine may help.",
-                "Consult doctor if spreading."
+                "Topical antifungal may help",
+                "Keep area clean and dry"
             ]
         )
 
     if "Acidity" in s:
+
         return (
             "Acidity / Gastritis",
             "LOW",
             [
-                "Acidity commonly occurs due to irregular meals or spicy food.",
-                "Avoid late-night meals."
+                "Acidity usually occurs due to irregular meals or spicy food."
             ],
             [
-                "Severe abdominal pain",
-                "Vomiting blood"
+                "Vomiting blood",
+                "Severe abdominal pain"
             ],
             [
-                "Antacid may provide relief.",
-                "Avoid spicy food."
+                "Antacid may help",
+                "Avoid late-night meals"
             ]
         )
 
     # ---------------- DEFAULT ----------------
-
     return (
         "Insufficient Clinical Information",
         "UNKNOWN",
         [
-            "Selected symptoms are not sufficient for assessment.",
-            "Add more symptoms for better evaluation."
+            "Selected symptoms are not enough for assessment."
         ],
         [
             "Persistent symptoms",
-            "Breathing difficulty",
-            "High fever"
+            "High fever",
+            "Breathing difficulty"
         ],
         [
-            "Consult doctor if symptoms worsen."
+            "Consult doctor if symptoms worsen"
         ]
     )
 
-# ---------------- UI ----------------
-selected_symptoms = st.multiselect(
-    "Select Symptoms",
-    symptoms_list
-)
 
-uploaded_img = st.file_uploader(
-    "Upload image (optional)",
-    type=["jpg","png","jpeg"]
-)
+# ---------------- USER INPUT ----------------
+selected_symptoms = st.multiselect("Select Symptoms", symptoms_list)
+
+uploaded_img = st.file_uploader("Upload image (optional)", type=["jpg","png","jpeg"])
 
 if uploaded_img:
     st.image(Image.open(uploaded_img))
 
+
+# ---------------- ANALYZE BUTTON ----------------
 if st.button("Analyze Symptoms"):
 
     if not selected_symptoms:
-        st.warning("Please select symptoms.")
+
+        st.warning("Please select symptoms")
 
     else:
 
@@ -258,24 +252,23 @@ if st.button("Analyze Symptoms"):
         st.subheader("Risk Level")
         st.write(risk)
 
-      st.subheader("Clinical Explanation")
+        st.subheader("Clinical Explanation")
+        for e in explanation:
+            st.write("•", e)
 
-for e in explanation:
-    st.write("•", e)
+        st.subheader("Red Flag Symptoms")
+        for r in redflags:
+            st.write("•", r)
 
-st.subheader("Red Flag Symptoms")
+        st.subheader("Pharmacy Guidance")
+        for o in otc:
+            st.write("•", o)
 
-for r in redflags:
-    st.write("•", r)
 
-st.subheader("Pharmacy Guidance")
-
-for o in otc:
-    st.write("•", o)
-
+        # ---------------- EMERGENCY BUTTONS ----------------
         if risk == "HIGH":
 
-            st.error("🚨 Serious symptoms detected")
+            st.error("🚨 Emergency condition detected")
 
             col1, col2, col3 = st.columns(3)
 
