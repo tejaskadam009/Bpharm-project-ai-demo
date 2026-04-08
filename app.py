@@ -8,40 +8,6 @@ st.set_page_config(
     layout="centered"
 )
 
-# ---------------- DARK/LIGHT TOGGLE ----------------
-if "mode" not in st.session_state:
-    st.session_state.mode = "dark"
-
-col_left, col_toggle = st.columns([6, 1])
-
-with col_toggle:
-    if st.button("🌓"):
-        if st.session_state.mode == "dark":
-            st.session_state.mode = "light"
-        else:
-            st.session_state.mode = "dark"
-        st.rerun()
-
-# ---------------- STYLE ENGINE ----------------
-if st.session_state.mode == "light":
-
-    CARD_STYLE = """
-    background:#f8fafc;
-    border:1px solid #e2e8f0;
-    padding:20px;
-    border-radius:12px;
-    color:black;
-    """
-
-else:
-
-    CARD_STYLE = """
-    background:rgba(255,255,255,0.05);
-    border:1px solid rgba(255,255,255,0.15);
-    padding:20px;
-    border-radius:12px;
-    """
-
 # ---------------- DISCLAIMER SCREEN ----------------
 if "accepted" not in st.session_state:
     st.session_state.accepted = False
@@ -100,6 +66,7 @@ This system is intended strictly for educational screening support purposes.
 
     st.stop()
 
+
 # ---------------- HEADER ----------------
 st.title("🩺 AI Health Guidance System")
 
@@ -112,6 +79,7 @@ st.info(
 )
 
 st.divider()
+
 
 # ---------------- SYMPTOM LIST ----------------
 st.subheader("Patient Symptom Intake")
@@ -147,6 +115,7 @@ selected_symptoms = st.multiselect(
 
 st.divider()
 
+
 # ---------------- IMAGE INPUT ----------------
 uploaded_img = st.file_uploader(
     "Upload rash / wound image (optional)",
@@ -158,11 +127,13 @@ if uploaded_img:
 
 st.divider()
 
+
 # ---------------- CLINICAL ENGINE ----------------
 def assess(symptoms):
 
     s = set(symptoms)
 
+    # HIGH RISK CONDITIONS
     if "Chest pain" in s or "Breathlessness" in s:
         return (
             "Possible Cardiac or Respiratory Emergency",
@@ -181,6 +152,7 @@ def assess(symptoms):
             ["Urgent neurological consultation required"]
         )
 
+    # MODERATE RISK CONDITIONS
     if "Fever" in s and "Cough" in s:
         return (
             "Upper Respiratory Infection",
@@ -199,6 +171,7 @@ def assess(symptoms):
             ["ORS + hydration recommended"]
         )
 
+    # LOW RISK CONDITIONS
     if "Skin rash" in s or "Itching" in s:
         return (
             "Skin Allergy / Fungal Infection",
@@ -215,6 +188,7 @@ def assess(symptoms):
         ["Persistent symptoms"],
         ["Consult healthcare professional"]
     )
+
 
 # ---------------- SCREENING BUTTON ----------------
 if st.button("Run Clinical Screening"):
