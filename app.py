@@ -8,32 +8,35 @@ st.set_page_config(
     layout="centered"
 )
 
-# ---------------- THEME TOGGLE ----------------
+# ---------------- SIDEBAR THEME TOGGLE ----------------
 if "theme" not in st.session_state:
     st.session_state.theme = "dark"
 
-col_theme1, col_theme2 = st.columns([6,1])
+st.sidebar.markdown("## ⚙️ Settings")
 
-with col_theme2:
-    if st.button("🌓"):
-        if st.session_state.theme == "dark":
-            st.session_state.theme = "light"
-        else:
-            st.session_state.theme = "dark"
-        st.rerun()
+if st.sidebar.button("Toggle Dark / Light Mode 🌓"):
+    if st.session_state.theme == "dark":
+        st.session_state.theme = "light"
+    else:
+        st.session_state.theme = "dark"
+    st.rerun()
 
-# ---------------- THEME STYLING ----------------
+# ---------------- THEME STYLE ----------------
 if st.session_state.theme == "light":
 
     st.markdown("""
     <style>
-    body { background-color: white; }
+    body {
+        background-color: white;
+        color: black;
+    }
+
     .card {
-        background-color:#f8fafc;
-        padding:18px;
-        border-radius:12px;
-        border:1px solid #e2e8f0;
-        color:black;
+        background-color: #f8fafc;
+        padding: 18px;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        color: black;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -44,17 +47,18 @@ else:
     <style>
     .card {
         background-color: rgba(255,255,255,0.05);
-        padding:18px;
-        border-radius:12px;
-        border:1px solid rgba(255,255,255,0.15);
+        padding: 18px;
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.15);
     }
     </style>
     """, unsafe_allow_html=True)
 
 
-# ---------------- PROFESSIONAL DISCLAIMER SCREEN ----------------
+# ---------------- DISCLAIMER SCREEN ----------------
 if "accepted" not in st.session_state:
     st.session_state.accepted = False
+
 
 if not st.session_state.accepted:
 
@@ -123,7 +127,7 @@ st.info(
 st.divider()
 
 
-# ---------------- SYMPTOM INTAKE SECTION ----------------
+# ---------------- SYMPTOM INTAKE ----------------
 st.subheader("Patient Symptom Intake")
 
 symptoms_list = [
