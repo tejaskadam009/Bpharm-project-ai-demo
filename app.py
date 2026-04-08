@@ -214,5 +214,17 @@ with tab2:
         for a in advice:
             st.write("•", a)
 
-        if risk == "HIGH":
-            st.error("🚨 Emergency detected")
+     if risk == "HIGH":
+    st.error("🚨 Emergency condition detected")
+st.markdown("### 📞 Emergency Contacts")
+
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    st.markdown('<a href="tel:108"><button style="width:100%;padding:14px;background:red;color:white;border:none;border-radius:8px;">🚑 Ambulance</button></a>', unsafe_allow_html=True)
+
+with col2:
+    st.markdown('<a href="tel:112"><button style="width:100%;padding:14px;background:orange;color:white;border:none;border-radius:8px;">☎ Emergency</button></a>', unsafe_allow_html=True)
+
+with col3:
+    st.markdown('<a href="tel:+919999999999"><button style="width:100%;padding:14px;background:green;color:white;border:none;border-radius:8px;">👨‍⚕️ Doctor</button></a>', unsafe_allow_html=True)
