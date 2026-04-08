@@ -15,6 +15,7 @@ if "accepted" not in st.session_state:
 
 @st.dialog("⚠️ Important Notice")
 def disclaimer():
+
     st.markdown("""
 ### AI Health Guidance System
 
@@ -43,9 +44,11 @@ if not st.session_state.accepted:
     disclaimer()
     st.stop()
 
+
 # ---------------- HEADER ----------------
 st.title("🩺 AI Health Guidance System")
 st.caption("Symptom Screening • Risk Assessment • Referral Guidance")
+
 
 # ---------------- 100 SYMPTOMS ----------------
 symptoms_list = [
@@ -62,6 +65,7 @@ symptoms_list = [
 "Watery eyes","Face swelling","Lip swelling","Tongue swelling","Difficulty swallowing","Severe allergy","Itchy throat","Runny eyes","Skin allergy","Breathing allergy",
 "Joint pain","Muscle cramps","Muscle weakness","Back pain","Neck pain","Shoulder pain","Leg swelling","High thirst","Frequent urination thirst","Fatigue after activity"
 ]
+
 
 # ---------------- RISK ENGINE ----------------
 def assess(symptoms):
@@ -126,6 +130,7 @@ def assess(symptoms):
 # ---------------- TABS ----------------
 tab1, tab2 = st.tabs(["Symptom Checker", "Clinical Scenarios"])
 
+
 # ---------------- TAB 1 ----------------
 with tab1:
 
@@ -143,6 +148,7 @@ with tab1:
 
         if not selected_symptoms:
             st.warning("Please select symptoms.")
+
         else:
 
             condition, risk, advice = assess(selected_symptoms)
@@ -158,30 +164,61 @@ with tab1:
             for a in advice:
                 st.write("•", a)
 
-        # ---------------- EMERGENCY BUTTONS ----------------
+            # ---------------- EMERGENCY BUTTONS ----------------
 
-if risk == "HIGH":
+            if risk == "HIGH":
 
-    st.error("🚨 Serious symptoms detected")
+                st.error("🚨 Serious symptoms detected")
 
-    st.markdown("### Emergency Assistance")
+                st.markdown("### Emergency Assistance")
 
-    col1, col2, col3 = st.columns(3)
+                col1, col2, col3 = st.columns(3)
 
-    with col1:
-        st.markdown(
-            '<a href="tel:108"><button style="width:100%;padding:14px;background:red;color:white;border:none;border-radius:8px;">🚑 Call Ambulance (108)</button></a>',
-            unsafe_allow_html=True
-        )
+                with col1:
+                    st.markdown(
+                        '<a href="tel:108"><button style="width:100%;padding:14px;background:red;color:white;border:none;border-radius:8px;">🚑 Call Ambulance (108)</button></a>',
+                        unsafe_allow_html=True
+                    )
 
-    with col2:
-        st.markdown(
-            '<a href="tel:112"><button style="width:100%;padding:14px;background:orange;color:white;border:none;border-radius:8px;">☎ Emergency (112)</button></a>',
-            unsafe_allow_html=True
-        )
+                with col2:
+                    st.markdown(
+                        '<a href="tel:112"><button style="width:100%;padding:14px;background:orange;color:white;border:none;border-radius:8px;">☎ Emergency (112)</button></a>',
+                        unsafe_allow_html=True
+                    )
 
-    with col3:
-        st.markdown(
-            '<a href="tel:+919999999999"><button style="width:100%;padding:14px;background:green;color:white;border:none;border-radius:8px;">👨‍⚕️ Call Doctor</button></a>',
-            unsafe_allow_html=True
-        )
+                with col3:
+                    st.markdown(
+                        '<a href="tel:+919999999999"><button style="width:100%;padding:14px;background:green;color:white;border:none;border-radius:8px;">👨‍⚕️ Call Doctor</button></a>',
+                        unsafe_allow_html=True
+                    )
+
+
+# ---------------- TAB 2 ----------------
+with tab2:
+
+    scenarios = {
+        "Fever + Body Pain": ["Fever", "Body ache"],
+        "Cough + Sore Throat": ["Cough", "Sore throat"],
+        "Vomiting + Loose Motion": ["Vomiting", "Loose motion"],
+        "Chest Pain + Breathlessness": ["Chest pain", "Breathlessness"],
+        "Skin Rash + Itching": ["Rash", "Itching"],
+        "Burning Urination": ["Burning urination"],
+        "Acidity After Meals": ["Acidity"],
+        "Headache + Nausea": ["Headache", "Nausea"],
+        "Sneezing + Watery Eyes": ["Sneezing", "Watery eyes"]
+    }
+
+    case = st.selectbox("Select Scenario", list(scenarios.keys()))
+
+    if st.button("Generate Guidance"):
+
+        condition, risk, advice = assess(scenarios[case])
+
+        st.success(condition)
+        st.write("Risk Level:", risk)
+
+        for a in advice:
+            st.write("•", a)
+
+        if risk == "HIGH":
+            st.error("🚨 Emergency detected")
