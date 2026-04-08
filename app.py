@@ -8,39 +8,39 @@ st.set_page_config(
     layout="centered"
 )
 
-# ---------------- APPEARANCE MODE SWITCHER ----------------
-if "appearance" not in st.session_state:
-    st.session_state.appearance = "Dark"
+# ---------------- APPEARANCE TOGGLE ----------------
+if "mode" not in st.session_state:
+    st.session_state.mode = "dark"
 
-st.sidebar.markdown("## ⚙️ Appearance Settings")
+col1, col2 = st.columns([6,1])
 
-mode = st.sidebar.radio(
-    "Select Interface Mode",
-    ["Dark Mode", "Light Mode"]
-)
+with col2:
+    if st.button("🌓"):
+        if st.session_state.mode == "dark":
+            st.session_state.mode = "light"
+        else:
+            st.session_state.mode = "dark"
+        st.rerun()
 
-if mode == "Light Mode":
-    st.session_state.appearance = "Light"
-else:
-    st.session_state.appearance = "Dark"
-
-
-# ---------------- CUSTOM UI STYLE ----------------
-if st.session_state.appearance == "Light":
+# ---------------- STYLE SETTINGS ----------------
+if st.session_state.mode == "light":
 
     CARD_STYLE = """
-    background-color:#f8fafc;
-    border:1px solid #e2e8f0;
+    background:#f8fafc;
     color:black;
+    border:1px solid #e2e8f0;
+    padding:18px;
+    border-radius:12px;
     """
 
 else:
 
     CARD_STYLE = """
-    background-color: rgba(255,255,255,0.05);
+    background:rgba(255,255,255,0.05);
     border:1px solid rgba(255,255,255,0.15);
+    padding:18px;
+    border-radius:12px;
     """
-
 
 # ---------------- DISCLAIMER SCREEN ----------------
 if "accepted" not in st.session_state:
@@ -49,43 +49,44 @@ if "accepted" not in st.session_state:
 
 if not st.session_state.accepted:
 
-    st.markdown(f"""
-    <div style="{CARD_STYLE}
-    padding:18px;
-    border-radius:12px;">
+    st.markdown(
+        f"""
+        <div style="{CARD_STYLE}">
 
-    <h2>🩺 AI Health Guidance System</h2>
+        <h2>🩺 AI Health Guidance System</h2>
 
-    <b>Clinical Decision Support Prototype</b>
+        <b>Clinical Decision Support Prototype</b>
 
-    <hr>
+        <hr>
 
-    This system performs symptom-based screening using rule-based clinical logic
-    to assist early health risk identification.
+        This system performs symptom-based screening using rule-based clinical logic
+        to assist early health risk identification.
 
-    <br><br>
+        <br><br>
 
-    <b>This application provides:</b>
+        <b>This application provides:</b>
 
-    • Preliminary clinical impression  
-    • Risk classification (Low / Moderate / High)  
-    • Pharmacist counselling guidance  
-    • Emergency referral recommendations  
+        <ul>
+        <li>Preliminary clinical impression</li>
+        <li>Risk classification (Low / Moderate / High)</li>
+        <li>Pharmacist counselling guidance</li>
+        <li>Emergency referral recommendations</li>
+        </ul>
 
-    <br>
+        <b>This application does NOT provide:</b>
 
-    <b>This application does NOT provide:</b>
+        <ul>
+        <li>Confirmed diagnosis</li>
+        <li>Prescription decisions</li>
+        <li>Emergency treatment replacement</li>
+        </ul>
 
-    • Confirmed diagnosis  
-    • Prescription decisions  
-    • Emergency treatment replacement  
+        This system is intended strictly for educational screening support purposes.
 
-    <br>
-
-    This system is intended strictly for educational screening support purposes.
-
-    </div>
-    """, unsafe_allow_html=True)
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
     agree = st.checkbox(
         "I understand this system is for educational screening support only"
@@ -112,8 +113,7 @@ st.info(
 
 st.divider()
 
-
-# ---------------- SYMPTOM INTAKE ----------------
+# ---------------- SYMPTOMS ----------------
 st.subheader("Patient Symptom Intake")
 
 symptoms_list = [
@@ -147,7 +147,6 @@ selected_symptoms = st.multiselect(
 
 st.divider()
 
-
 # ---------------- IMAGE INPUT ----------------
 uploaded_img = st.file_uploader(
     "Upload clinical image (optional)",
@@ -159,46 +158,30 @@ if uploaded_img:
 
 st.divider()
 
-
 # ---------------- CLINICAL ENGINE ----------------
 def assess(symptoms):
 
     s = set(symptoms)
 
     if "Chest pain" in s or "Breathlessness" in s:
-        return (
-            "Possible Cardiac or Respiratory Emergency",
-            "HIGH",
-            ["Chest pain with breathlessness may indicate serious cardiac or pulmonary condition"],
-            ["Pain radiating to arm or jaw", "Severe breathing difficulty"],
-            ["Immediate hospital evaluation required"]
-        )
+        return "Possible Cardiac or Respiratory Emergency", "HIGH"
 
     if "Seizures" in s or "Confusion" in s:
-        return (
-            "Possible Neurological Emergency",
-            "HIGH",
-            ["Neurological symptoms detected requiring urgent evaluation"],
-            ["Repeated seizures", "Loss of consciousness"],
-            ["Immediate neurological consultation recommended"]
-        )
+        return "Possible Neurological Emergency", "HIGH"
 
     if "Fever" in s and "Cough" in s:
-        return (
-            "Upper Respiratory Infection / Viral Fever",
-            "MEDIUM",
-            ["Symptoms suggest respiratory infection"],
-            ["Fever lasting more than 3 days", "Breathing difficulty"],
-            ["Paracetamol may help reduce fever", "Steam inhalation recommended"]
-        )
+        return "Upper Respiratory Infection / Viral Fever", "MEDIUM"
 
-    return (
-        "Insufficient Clinical Information",
-        "UNKNOWN",
-        ["More symptom data required"],
-        ["Persistent symptoms"],
-        ["Consult healthcare professional"]
-    )
+    if "Burning urination" in s:
+        return "Urinary Tract Infection", "MEDIUM"
+
+    if "Skin rash" in s or "Itching" in s:
+        return "Skin Allergy / Fungal Infection", "LOW"
+
+    if "Acidity" in s:
+        return "Acidity / Gastritis", "LOW"
+
+    return "Insufficient Clinical Information", "UNKNOWN"
 
 
 # ---------------- ANALYSIS BUTTON ----------------
@@ -210,7 +193,7 @@ if st.button("Run Clinical Screening"):
 
     else:
 
-        condition, risk, explanation, redflags, otc = assess(selected_symptoms)
+        condition, risk = assess(selected_symptoms)
 
         st.divider()
 
@@ -225,12 +208,14 @@ if st.button("Run Clinical Screening"):
         elif risk == "MEDIUM":
             st.warning("🟠 MODERATE RISK – Clinical consultation advised")
 
+        elif risk == "LOW":
+            st.success("🟢 LOW RISK – Routine monitoring recommended")
+
         else:
             st.info("Insufficient data for classification")
-
 
 st.divider()
 
 st.caption(
-"AI Health Guidance System | Clinical Decision Support Prototype | Developed for B.Pharm Final Year Project"
+    "AI Health Guidance System | Clinical Decision Support Prototype | Developed for B.Pharm Final Year Project"
 )
