@@ -8,72 +8,100 @@ st.set_page_config(
     layout="centered"
 )
 
-# ---------------- GLOBAL STYLING ----------------
-st.markdown("""
-<style>
+# ---------------- THEME TOGGLE ----------------
+if "theme" not in st.session_state:
+    st.session_state.theme = "dark"
 
-.block-container {
-    padding-top: 2rem;
-}
+col_theme1, col_theme2 = st.columns([6,1])
 
-.big-title {
-    font-size:32px;
-    font-weight:700;
-}
+with col_theme2:
+    if st.button("🌓"):
+        if st.session_state.theme == "dark":
+            st.session_state.theme = "light"
+        else:
+            st.session_state.theme = "dark"
+        st.rerun()
 
-.subtitle {
-    font-size:17px;
-    opacity:0.85;
-}
+# ---------------- THEME STYLING ----------------
+if st.session_state.theme == "light":
 
-.card {
-    background-color: rgba(255,255,255,0.05);
-    padding:18px;
-    border-radius:12px;
-    border:1px solid rgba(255,255,255,0.15);
-}
+    st.markdown("""
+    <style>
+    body { background-color: white; }
+    .card {
+        background-color:#f8fafc;
+        padding:18px;
+        border-radius:12px;
+        border:1px solid #e2e8f0;
+        color:black;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
-</style>
-""", unsafe_allow_html=True)
+else:
+
+    st.markdown("""
+    <style>
+    .card {
+        background-color: rgba(255,255,255,0.05);
+        padding:18px;
+        border-radius:12px;
+        border:1px solid rgba(255,255,255,0.15);
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
 
-# ---------------- PROFESSIONAL WELCOME SCREEN ----------------
+# ---------------- PROFESSIONAL DISCLAIMER SCREEN ----------------
 if "accepted" not in st.session_state:
     st.session_state.accepted = False
 
-
 if not st.session_state.accepted:
 
-    st.markdown('<div class="big-title">🩺 AI Health Guidance System</div>', unsafe_allow_html=True)
+    st.markdown("""
+    <div class="card">
 
-    st.markdown(
-        '<div class="subtitle">Clinical Decision Support Prototype for Symptom-Based Risk Assessment</div>',
-        unsafe_allow_html=True
+    <h2>🩺 AI Health Guidance System</h2>
+
+    <b>Clinical Decision Support Prototype</b>
+
+    <hr>
+
+    This system performs symptom-based screening using rule-based clinical logic
+    to assist early health risk identification.
+
+    <br><br>
+
+    <b>This application provides:</b>
+
+    • Preliminary clinical impression  
+    • Risk classification (Low / Moderate / High)  
+    • Pharmacist counselling guidance  
+    • Emergency referral recommendations  
+
+    <br>
+
+    <b>This application does NOT provide:</b>
+
+    • Confirmed diagnosis  
+    • Prescription decisions  
+    • Emergency treatment replacement  
+
+    <br>
+
+    This system is intended strictly for <b>educational screening support purposes</b>.
+    Please consult a qualified healthcare professional for diagnosis and treatment.
+
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.write("")
+
+    agree = st.checkbox(
+        "I understand this system is for educational screening support only"
     )
 
-    st.write("")
-
-    st.markdown("""
-<div class="card">
-
-This clinical screening system assists users in identifying possible health conditions based on symptom input.
-
-The system provides:
-
-• preliminary clinical impression  
-• risk classification  
-• pharmacist counselling guidance  
-• referral recommendation support  
-
-This system is intended for early screening assistance only and does not replace professional medical diagnosis.
-
-</div>
-""", unsafe_allow_html=True)
-
-    st.write("")
-
-    if st.checkbox("I understand this system provides guidance only and I wish to continue"):
-
+    if agree:
         if st.button("Launch Clinical Screening Interface"):
             st.session_state.accepted = True
             st.rerun()
@@ -82,22 +110,21 @@ This system is intended for early screening assistance only and does not replace
 
 
 # ---------------- HEADER ----------------
-st.markdown('<div class="big-title">🩺 AI Health Guidance System</div>', unsafe_allow_html=True)
+st.title("🩺 AI Health Guidance System")
 
-st.markdown(
-'<div class="subtitle">Symptom Screening • Risk Classification • Pharmacist Counselling Support</div>',
-unsafe_allow_html=True
+st.caption(
+    "Symptom Screening • Risk Classification • Pharmacist Counselling Support"
 )
 
-st.caption("Step 1: Select symptoms  →  Step 2: Run screening  →  Step 3: Review risk classification")
-
-st.info("This system performs symptom-based screening using rule-based clinical decision support logic.")
+st.info(
+    "Step 1: Select symptoms → Step 2: Run screening → Step 3: Review risk classification"
+)
 
 st.divider()
 
 
-# ---------------- SYMPTOMS DATABASE ----------------
-st.markdown("## Patient Symptom Intake")
+# ---------------- SYMPTOM INTAKE SECTION ----------------
+st.subheader("Patient Symptom Intake")
 
 symptoms_list = [
 
@@ -123,7 +150,6 @@ symptoms_list = [
 "Skin infection","Ring-shaped rash"
 ]
 
-
 selected_symptoms = st.multiselect(
     "Select symptoms observed",
     symptoms_list
@@ -132,7 +158,7 @@ selected_symptoms = st.multiselect(
 st.divider()
 
 
-# ---------------- OPTIONAL IMAGE INPUT ----------------
+# ---------------- IMAGE INPUT ----------------
 uploaded_img = st.file_uploader(
     "Upload clinical image (optional)",
     type=["jpg","jpeg","png"]
@@ -149,12 +175,11 @@ def assess(symptoms):
 
     s = set(symptoms)
 
-    # HIGH RISK CONDITIONS
     if "Chest pain" in s or "Breathlessness" in s:
         return (
             "Possible Cardiac or Respiratory Emergency",
             "HIGH",
-            ["Chest pain with breathlessness may indicate serious cardiac or pulmonary condition."],
+            ["Chest pain with breathlessness may indicate serious cardiac or pulmonary condition"],
             ["Pain radiating to arm or jaw", "Severe breathing difficulty"],
             ["Immediate hospital evaluation required"]
         )
@@ -163,7 +188,7 @@ def assess(symptoms):
         return (
             "Possible Neurological Emergency",
             "HIGH",
-            ["Neurological symptoms detected requiring urgent evaluation."],
+            ["Neurological symptoms detected requiring urgent evaluation"],
             ["Repeated seizures", "Loss of consciousness"],
             ["Immediate neurological consultation recommended"]
         )
@@ -172,17 +197,16 @@ def assess(symptoms):
         return (
             "Possible Gastrointestinal Bleeding",
             "HIGH",
-            ["Blood in stool suggests internal bleeding risk."],
+            ["Blood in stool suggests internal bleeding risk"],
             ["Persistent weakness", "Ongoing bleeding"],
             ["Urgent medical consultation required"]
         )
 
-    # MEDIUM RISK CONDITIONS
     if "Fever" in s and "Cough" in s:
         return (
             "Upper Respiratory Infection / Viral Fever",
             "MEDIUM",
-            ["Symptoms suggest respiratory infection."],
+            ["Symptoms suggest respiratory infection"],
             ["Fever lasting more than 3 days", "Breathing difficulty"],
             ["Paracetamol may help reduce fever", "Steam inhalation recommended"]
         )
@@ -191,7 +215,7 @@ def assess(symptoms):
         return (
             "Acute Gastroenteritis",
             "MEDIUM",
-            ["Vomiting or diarrhea indicates gastrointestinal infection."],
+            ["Vomiting or diarrhea indicates gastrointestinal infection"],
             ["Severe dehydration", "Blood in stool"],
             ["ORS recommended", "Avoid oily foods"]
         )
@@ -200,17 +224,16 @@ def assess(symptoms):
         return (
             "Urinary Tract Infection",
             "MEDIUM",
-            ["Burning urination indicates urinary infection."],
+            ["Burning urination indicates urinary infection"],
             ["Back pain with fever"],
             ["Increase water intake", "Urine test recommended"]
         )
 
-    # LOW RISK CONDITIONS
     if "Skin rash" in s or "Itching" in s:
         return (
             "Skin Allergy / Fungal Infection",
             "LOW",
-            ["Dermatological irritation likely."],
+            ["Dermatological irritation likely"],
             ["Spreading rash", "Pus formation"],
             ["Topical antifungal may help"]
         )
@@ -219,7 +242,7 @@ def assess(symptoms):
         return (
             "Acidity / Gastritis",
             "LOW",
-            ["Likely related to dietary factors."],
+            ["Likely related to dietary factors"],
             ["Vomiting blood"],
             ["Antacid therapy may help"]
         )
@@ -227,7 +250,7 @@ def assess(symptoms):
     return (
         "Insufficient Clinical Information",
         "UNKNOWN",
-        ["More symptom data required."],
+        ["More symptom data required"],
         ["Persistent symptoms"],
         ["Consult healthcare professional"]
     )
@@ -264,17 +287,14 @@ if st.button("Run Clinical Screening"):
             st.info("Insufficient data for classification")
 
         st.subheader("Clinical Interpretation")
-
         for e in explanation:
             st.write("•", e)
 
         st.subheader("Urgent Warning Indicators")
-
         for r in redflags:
             st.write("•", r)
 
         st.subheader("Pharmacist Counselling Guidance")
-
         for o in otc:
             st.write("•", o)
 
