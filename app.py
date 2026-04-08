@@ -8,27 +8,78 @@ st.set_page_config(
     layout="centered"
 )
 
-# ---------------- DISCLAIMER ----------------
+# ---------------- CUSTOM UI STYLE ----------------
+st.markdown("""
+<style>
+
+.block-container {
+    padding-top: 2rem;
+}
+
+.big-title {
+    font-size:32px;
+    font-weight:700;
+}
+
+.subtitle {
+    font-size:17px;
+    color:gray;
+}
+
+.card {
+    background-color:#f8fafc;
+    padding:18px;
+    border-radius:12px;
+    border:1px solid #e2e8f0;
+}
+
+.section-header {
+    font-size:20px;
+    font-weight:600;
+    margin-top:20px;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+
+# ---------------- PROFESSIONAL WELCOME SCREEN ----------------
 if "accepted" not in st.session_state:
     st.session_state.accepted = False
 
+
 if not st.session_state.accepted:
-    st.title("⚠️ Important Notice")
 
-    st.write("""
-This AI Health Guidance System provides:
+    st.markdown('<div class="big-title">🩺 AI Health Guidance System</div>', unsafe_allow_html=True)
 
-✔ Possible condition (probable)  
-✔ Risk level estimation  
+    st.markdown('<div class="subtitle">Clinical Decision Support Prototype for Symptom-Based Risk Assessment</div>', unsafe_allow_html=True)
+
+    st.write("")
+
+    st.markdown("""
+<div class="card">
+
+### About this system
+
+This application provides:
+
+✔ Symptom-based preliminary condition identification  
+✔ Risk classification (Low / Medium / High)  
 ✔ Pharmacy counselling guidance  
-✔ Emergency referral suggestions  
+✔ Emergency referral recommendations  
 
-It does NOT provide confirmed diagnosis or prescription.
-Always consult a healthcare professional when required.
-""")
+This application does **not replace professional diagnosis**.
 
-    if st.checkbox("I understand and wish to continue"):
-        if st.button("Continue"):
+It is designed to support **early health awareness and referral decisions**.
+
+</div>
+""", unsafe_allow_html=True)
+
+    st.write("")
+
+    if st.checkbox("I understand this system provides guidance only and I wish to continue"):
+
+        if st.button("Enter Application"):
             st.session_state.accepted = True
             st.rerun()
 
@@ -36,8 +87,12 @@ Always consult a healthcare professional when required.
 
 
 # ---------------- HEADER ----------------
-st.title("🩺 AI Health Guidance System")
-st.caption("Symptom Screening • Risk Assessment • Pharmacy Counselling Support")
+st.markdown('<div class="big-title">🩺 AI Health Guidance System</div>', unsafe_allow_html=True)
+
+st.markdown(
+'<div class="subtitle">Symptom Screening • Risk Classification • Pharmacy Support</div>',
+unsafe_allow_html=True
+)
 
 
 # ---------------- SYMPTOMS DATABASE ----------------
@@ -71,89 +126,66 @@ def assess(symptoms):
 
     s = set(symptoms)
 
-    # HIGH RISK CONDITIONS
     if "Chest pain" in s or "Breathlessness" in s:
         return (
             "Possible Cardiac or Respiratory Emergency",
             "HIGH",
-            [
-                "Chest pain with breathlessness may indicate heart attack or lung emergency."
-            ],
-            [
-                "Pain spreading to arm or jaw",
-                "Severe breathing difficulty"
-            ],
-            [
-                "Immediate hospital visit required"
-            ]
+            ["Chest pain with breathlessness may indicate serious heart or lung condition."],
+            ["Pain spreading to arm or jaw", "Severe breathing difficulty"],
+            ["Immediate hospital evaluation required"]
         )
 
     if "Seizures" in s or "Confusion" in s:
         return (
             "Possible Neurological Emergency",
             "HIGH",
-            ["Seizures may indicate brain-related emergency"],
-            ["Repeated seizures","Loss of consciousness"],
-            ["Emergency neurological evaluation required"]
+            ["Neurological symptoms detected requiring urgent evaluation"],
+            ["Repeated seizures", "Loss of consciousness"],
+            ["Immediate neurological consultation recommended"]
         )
 
     if "Blood in stool" in s or "Black stool" in s:
         return (
             "Possible Gastrointestinal Bleeding",
             "HIGH",
-            ["Blood in stool indicates internal bleeding"],
-            ["Weakness","Persistent bleeding"],
-            ["Immediate doctor consultation required"]
+            ["Blood in stool suggests internal bleeding risk"],
+            ["Persistent weakness", "Ongoing bleeding"],
+            ["Urgent medical consultation required"]
         )
-
-
-    # MEDIUM RISK CONDITIONS
 
     if "Fever" in s and "Cough" in s:
         return (
             "Upper Respiratory Infection / Viral Fever",
             "MEDIUM",
-            ["Symptoms indicate respiratory infection"],
-            ["Fever > 3 days","Breathing difficulty"],
-            ["Paracetamol may help","Steam inhalation useful"]
+            ["Symptoms suggest respiratory infection"],
+            ["Fever lasting >3 days", "Breathing difficulty"],
+            ["Paracetamol may help reduce fever", "Steam inhalation recommended"]
         )
 
     if "Vomiting" in s or "Loose motion" in s:
         return (
             "Acute Gastroenteritis",
             "MEDIUM",
-            ["Vomiting or diarrhea suggests GI infection"],
-            ["Severe dehydration","Blood in stool"],
-            ["ORS recommended","Avoid spicy food"]
+            ["Vomiting or diarrhea indicates gastrointestinal infection"],
+            ["Severe dehydration", "Blood in stool"],
+            ["ORS recommended", "Avoid oily foods"]
         )
 
     if "Burning urination" in s:
         return (
             "Urinary Tract Infection",
             "MEDIUM",
-            ["Burning urination suggests infection"],
+            ["Burning urination indicates urinary infection"],
             ["Back pain with fever"],
-            ["Increase fluid intake","Urine test advised"]
+            ["Increase water intake", "Urine test recommended"]
         )
-
-    if "Joint pain" in s and "Fever" in s:
-        return (
-            "Possible Viral Arthritis / Dengue Suspicion",
-            "MEDIUM",
-            ["Joint pain with fever requires monitoring"],
-            ["Persistent fever","Bleeding gums"],
-            ["Doctor consultation recommended"]
-        )
-
-
-    # LOW RISK CONDITIONS
 
     if "Skin rash" in s or "Itching" in s:
         return (
             "Skin Allergy / Fungal Infection",
             "LOW",
-            ["Common dermatological reaction"],
-            ["Spreading rash","Pus formation"],
+            ["Dermatological irritation likely"],
+            ["Spreading rash", "Pus formation"],
             ["Topical antifungal may help"]
         )
 
@@ -161,104 +193,105 @@ def assess(symptoms):
         return (
             "Acidity / Gastritis",
             "LOW",
-            ["Likely due to diet or irregular meals"],
+            ["Likely related to dietary factors"],
             ["Vomiting blood"],
-            ["Antacid recommended"]
+            ["Antacid therapy may help"]
         )
-
-    if "Back pain" in s:
-        return (
-            "Musculoskeletal Back Pain",
-            "LOW",
-            ["Likely posture-related issue"],
-            ["Persistent numbness"],
-            ["Rest and posture correction"]
-        )
-
 
     return (
         "Insufficient Clinical Information",
         "UNKNOWN",
-        ["More symptoms required for assessment"],
+        ["More symptom data required"],
         ["Persistent symptoms"],
-        ["Consult doctor if symptoms worsen"]
+        ["Consult healthcare professional"]
     )
 
 
-# ---------------- INPUT ----------------
-selected_symptoms = st.multiselect("Select Symptoms", symptoms_list)
+# ---------------- INPUT SECTION ----------------
+st.markdown("### Select Symptoms")
 
-uploaded_img = st.file_uploader("Upload image (optional)", type=["jpg","png","jpeg"])
+selected_symptoms = st.multiselect(
+    "Choose symptoms from list",
+    symptoms_list
+)
+
+uploaded_img = st.file_uploader(
+    "Upload clinical image (optional)",
+    type=["jpg","jpeg","png"]
+)
 
 if uploaded_img:
-    st.image(Image.open(uploaded_img))
+    st.image(Image.open(uploaded_img), use_container_width=True)
 
 
-# ---------------- ANALYZE BUTTON ----------------
+# ---------------- ANALYSIS BUTTON ----------------
 if st.button("Analyze Symptoms"):
 
     if not selected_symptoms:
 
-        st.warning("Please select symptoms")
+        st.warning("Please select at least one symptom")
 
     else:
 
         condition, risk, explanation, redflags, otc = assess(selected_symptoms)
 
-        st.subheader("Possible Condition")
+        st.markdown("### Possible Condition")
         st.success(condition)
 
-        st.subheader("Risk Level")
+
+        st.markdown("### Risk Classification")
 
         if risk == "HIGH":
-            st.error(risk)
+            st.error("HIGH RISK")
 
         elif risk == "MEDIUM":
-            st.warning(risk)
+            st.warning("MEDIUM RISK")
 
         elif risk == "LOW":
-            st.success(risk)
+            st.success("LOW RISK")
 
         else:
-            st.info(risk)
+            st.info("UNKNOWN")
 
 
-        st.subheader("Clinical Explanation")
+        st.markdown("### Clinical Explanation")
+
         for e in explanation:
             st.write("•", e)
 
 
-        st.subheader("Red Flag Symptoms")
+        st.markdown("### Red Flag Indicators")
+
         for r in redflags:
             st.write("•", r)
 
 
-        st.subheader("Pharmacy Guidance")
+        st.markdown("### Pharmacy Guidance")
+
         for o in otc:
             st.write("•", o)
 
 
-        # EMERGENCY CONTACT
         if risk == "HIGH":
 
-            st.error("🚨 Emergency condition detected")
+            st.error("Emergency referral recommended")
 
             col1, col2, col3 = st.columns(3)
 
             with col1:
                 st.markdown(
-                    '<a href="tel:108"><button style="width:100%;padding:14px;background:red;color:white;border:none;border-radius:8px;">🚑 Ambulance</button></a>',
+                    '<a href="tel:108"><button style="width:100%;padding:14px;background:#dc2626;color:white;border:none;border-radius:10px;">🚑 Ambulance</button></a>',
                     unsafe_allow_html=True
                 )
 
             with col2:
                 st.markdown(
-                    '<a href="tel:112"><button style="width:100%;padding:14px;background:orange;color:white;border:none;border-radius:8px;">☎ Emergency</button></a>',
+                    '<a href="tel:112"><button style="width:100%;padding:14px;background:#f97316;color:white;border:none;border-radius:10px;">☎ Emergency</button></a>',
                     unsafe_allow_html=True
                 )
 
             with col3:
                 st.markdown(
-                    '<a href="tel:+919999999999"><button style="width:100%;padding:14px;background:green;color:white;border:none;border-radius:8px;">👨‍⚕️ Doctor</button></a>',
+                    '<a href="tel:+919999999999"><button style="width:100%;padding:14px;background:#16a34a;color:white;border:none;border-radius:10px;">👨‍⚕️ Doctor</button></a>',
                     unsafe_allow_html=True
                 )
