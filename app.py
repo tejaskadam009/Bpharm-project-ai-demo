@@ -8,51 +8,38 @@ st.set_page_config(
     layout="centered"
 )
 
-# ---------------- SIDEBAR THEME TOGGLE ----------------
-if "theme" not in st.session_state:
-    st.session_state.theme = "dark"
+# ---------------- APPEARANCE MODE SWITCHER ----------------
+if "appearance" not in st.session_state:
+    st.session_state.appearance = "Dark"
 
-st.sidebar.markdown("## ⚙️ Settings")
+st.sidebar.markdown("## ⚙️ Appearance Settings")
 
-if st.sidebar.button("Toggle Dark / Light Mode 🌓"):
-    if st.session_state.theme == "dark":
-        st.session_state.theme = "light"
-    else:
-        st.session_state.theme = "dark"
-    st.rerun()
+mode = st.sidebar.radio(
+    "Select Interface Mode",
+    ["Dark Mode", "Light Mode"]
+)
 
-# ---------------- THEME STYLE ----------------
-if st.session_state.theme == "light":
+if mode == "Light Mode":
+    st.session_state.appearance = "Light"
+else:
+    st.session_state.appearance = "Dark"
 
-    st.markdown("""
-    <style>
-    body {
-        background-color: white;
-        color: black;
-    }
 
-    .card {
-        background-color: #f8fafc;
-        padding: 18px;
-        border-radius: 12px;
-        border: 1px solid #e2e8f0;
-        color: black;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+# ---------------- CUSTOM UI STYLE ----------------
+if st.session_state.appearance == "Light":
+
+    CARD_STYLE = """
+    background-color:#f8fafc;
+    border:1px solid #e2e8f0;
+    color:black;
+    """
 
 else:
 
-    st.markdown("""
-    <style>
-    .card {
-        background-color: rgba(255,255,255,0.05);
-        padding: 18px;
-        border-radius: 12px;
-        border: 1px solid rgba(255,255,255,0.15);
-    }
-    </style>
-    """, unsafe_allow_html=True)
+    CARD_STYLE = """
+    background-color: rgba(255,255,255,0.05);
+    border:1px solid rgba(255,255,255,0.15);
+    """
 
 
 # ---------------- DISCLAIMER SCREEN ----------------
@@ -62,8 +49,10 @@ if "accepted" not in st.session_state:
 
 if not st.session_state.accepted:
 
-    st.markdown("""
-    <div class="card">
+    st.markdown(f"""
+    <div style="{CARD_STYLE}
+    padding:18px;
+    border-radius:12px;">
 
     <h2>🩺 AI Health Guidance System</h2>
 
@@ -93,13 +82,10 @@ if not st.session_state.accepted:
 
     <br>
 
-    This system is intended strictly for <b>educational screening support purposes</b>.
-    Please consult a qualified healthcare professional for diagnosis and treatment.
+    This system is intended strictly for educational screening support purposes.
 
     </div>
     """, unsafe_allow_html=True)
-
-    st.write("")
 
     agree = st.checkbox(
         "I understand this system is for educational screening support only"
@@ -197,15 +183,6 @@ def assess(symptoms):
             ["Immediate neurological consultation recommended"]
         )
 
-    if "Blood in stool" in s or "Black stool" in s:
-        return (
-            "Possible Gastrointestinal Bleeding",
-            "HIGH",
-            ["Blood in stool suggests internal bleeding risk"],
-            ["Persistent weakness", "Ongoing bleeding"],
-            ["Urgent medical consultation required"]
-        )
-
     if "Fever" in s and "Cough" in s:
         return (
             "Upper Respiratory Infection / Viral Fever",
@@ -213,42 +190,6 @@ def assess(symptoms):
             ["Symptoms suggest respiratory infection"],
             ["Fever lasting more than 3 days", "Breathing difficulty"],
             ["Paracetamol may help reduce fever", "Steam inhalation recommended"]
-        )
-
-    if "Vomiting" in s or "Loose motion" in s:
-        return (
-            "Acute Gastroenteritis",
-            "MEDIUM",
-            ["Vomiting or diarrhea indicates gastrointestinal infection"],
-            ["Severe dehydration", "Blood in stool"],
-            ["ORS recommended", "Avoid oily foods"]
-        )
-
-    if "Burning urination" in s:
-        return (
-            "Urinary Tract Infection",
-            "MEDIUM",
-            ["Burning urination indicates urinary infection"],
-            ["Back pain with fever"],
-            ["Increase water intake", "Urine test recommended"]
-        )
-
-    if "Skin rash" in s or "Itching" in s:
-        return (
-            "Skin Allergy / Fungal Infection",
-            "LOW",
-            ["Dermatological irritation likely"],
-            ["Spreading rash", "Pus formation"],
-            ["Topical antifungal may help"]
-        )
-
-    if "Acidity" in s or "Heartburn" in s:
-        return (
-            "Acidity / Gastritis",
-            "LOW",
-            ["Likely related to dietary factors"],
-            ["Vomiting blood"],
-            ["Antacid therapy may help"]
         )
 
     return (
@@ -284,47 +225,8 @@ if st.button("Run Clinical Screening"):
         elif risk == "MEDIUM":
             st.warning("🟠 MODERATE RISK – Clinical consultation advised")
 
-        elif risk == "LOW":
-            st.success("🟢 LOW RISK – Routine monitoring recommended")
-
         else:
             st.info("Insufficient data for classification")
-
-        st.subheader("Clinical Interpretation")
-        for e in explanation:
-            st.write("•", e)
-
-        st.subheader("Urgent Warning Indicators")
-        for r in redflags:
-            st.write("•", r)
-
-        st.subheader("Pharmacist Counselling Guidance")
-        for o in otc:
-            st.write("•", o)
-
-        if risk == "HIGH":
-
-            st.error("Emergency referral recommended")
-
-            col1, col2, col3 = st.columns(3)
-
-            with col1:
-                st.markdown(
-                    '<a href="tel:108"><button style="width:100%;padding:14px;background:#dc2626;color:white;border:none;border-radius:10px;">🚑 Ambulance</button></a>',
-                    unsafe_allow_html=True
-                )
-
-            with col2:
-                st.markdown(
-                    '<a href="tel:112"><button style="width:100%;padding:14px;background:#f97316;color:white;border:none;border-radius:10px;">☎ Emergency</button></a>',
-                    unsafe_allow_html=True
-                )
-
-            with col3:
-                st.markdown(
-                    '<a href="tel:+919999999999"><button style="width:100%;padding:14px;background:#16a34a;color:white;border:none;border-radius:10px;">👨‍⚕️ Doctor</button></a>',
-                    unsafe_allow_html=True
-                )
 
 
 st.divider()
