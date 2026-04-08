@@ -16,23 +16,27 @@ st.markdown("""
     padding-top: 2rem;
 }
 
+/* Title */
 .big-title {
     font-size:32px;
     font-weight:700;
 }
 
+/* Subtitle */
 .subtitle {
     font-size:17px;
-    color:gray;
+    opacity:0.8;
 }
 
+/* Card style that works in dark + light mode */
 .card {
-    background-color:#f8fafc;
+    background-color: rgba(255,255,255,0.05);
     padding:18px;
     border-radius:12px;
-    border:1px solid #e2e8f0;
+    border:1px solid rgba(255,255,255,0.15);
 }
 
+/* Section header */
 .section-header {
     font-size:20px;
     font-weight:600;
