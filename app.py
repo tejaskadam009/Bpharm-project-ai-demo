@@ -250,7 +250,7 @@ if st.button("Analyze Symptoms"):
 
     else:
 
-        condition, risk, advice = assess(selected_symptoms)
+        condition, risk, explanation, redflags, otc = assess(selected_symptoms)
 
         st.subheader("Possible Condition")
         st.success(condition)
